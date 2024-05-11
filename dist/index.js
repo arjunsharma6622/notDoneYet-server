@@ -7,6 +7,7 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const express_1 = __importDefault(require("express"));
 const utils_1 = require("./utils/utils");
 const user_1 = __importDefault(require("./routes/user"));
+const posts_1 = __importDefault(require("./routes/posts"));
 const cors_1 = __importDefault(require("cors"));
 const app = (0, express_1.default)();
 const corsOptions = {
@@ -23,6 +24,7 @@ app.get("/", (_req, res) => {
     return res.send("Hello World");
 });
 app.use("/api/user", user_1.default);
+app.use("/api/posts", posts_1.default);
 app.listen(8000, () => {
     console.log(`Server running on port ${PORT}`);
 });
