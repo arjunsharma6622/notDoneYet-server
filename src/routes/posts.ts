@@ -102,4 +102,10 @@ router.get("/recommended/:id", async (req, res) => {
   }
 });
 
+// get post comments by postId
+
+
+
+
+
 export default router;
