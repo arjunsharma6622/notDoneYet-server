@@ -84,7 +84,7 @@ router.get("/recommended/:id", async (req, res) => {
     })
       .populate({
         path: "user",
-        select: "name image bio",
+        select: "name image bio role",
       })
       .populate({
         path: "comments",
