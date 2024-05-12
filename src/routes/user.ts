@@ -62,6 +62,20 @@ router.get("/recommended/:id", async (req : Request, res : Response) => {
   }
 })
 
-
+// update user by userId
+router.patch("/:id", async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.id;
+    const updates = req.body;
+    const user = await User.findByIdAndUpdate(userId, updates, { new: true });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.status(200).json(user);
+  } catch (err) {
+    console.error(`Error updating user: ${err}`);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+})
 
 export default router;

@@ -1,4 +1,4 @@
-import { Schema, models, model } from "mongoose";
+import { Schema, model } from "mongoose";
 
 const commentSchema = new Schema(
   {
@@ -80,5 +80,4 @@ const postSchema = new Schema(
 );
 
 export const Comment = model("Comment", commentSchema);
-
 export const Post = model("Post", postSchema);

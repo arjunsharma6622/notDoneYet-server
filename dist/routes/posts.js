@@ -31,7 +31,17 @@ router.get("/", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
 router.get("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const postId = req.params.id;
-        const post = yield post_1.Post.findById(postId);
+        const post = yield post_1.Post.findById(postId)
+            .populate({
+            path: "user",
+            select: "name image bio followers following role",
+        })
+            .populate({
+            path: "comments",
+            populate: { path: "user", select: "name image" },
+        })
+            .populate({ path: "likes", select: "name image _id" })
+            .sort({ createdAt: -1 });
         if (!post) {
             return res.status(404).json({ error: "Post not found" });
         }
@@ -107,5 +117,4 @@ router.get("/recommended/:id", (req, res) => __awaiter(void 0, void 0, void 0, f
         res.status(500).json({ error: "Internal Server Error" });
     }
 }));
-// get post comments by postId
 exports.default = router;

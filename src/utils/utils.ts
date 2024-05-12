@@ -11,7 +11,7 @@ export const connectDB = async (): Promise<void> => {
     if (!mongoURL) {
       throw new Error("MongoDB URL is not provided in environment variables");
     }
-    const db = await mongoose.connect(mongoURL);
+    await mongoose.connect(mongoURL);
     console.log(`DB Connected Successfully!!!🙂`);
   } catch (error : any) {
       console.error(`Error connecting to MongoDB: ${error.message}`);

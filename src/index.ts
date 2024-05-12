@@ -3,6 +3,8 @@ import express, { Request, Response } from "express";
 import { connectDB } from "./utils/utils";
 import userRoutes from "./routes/user";
 import postRoutes from "./routes/posts";
+import venueRoutes from "./routes/venue";
+import conversationRoutes from "./routes/conversation";
 import cors, { CorsOptions } from "cors";
 
 const app = express();
@@ -27,6 +29,8 @@ app.get("/", (_req: Request, res: Response) => {
 
 app.use("/api/user", userRoutes);
 app.use("/api/posts", postRoutes);
+app.use("/api/venue", venueRoutes)
+app.use("/api/conversation", conversationRoutes)
 
 app.listen(8000, () => {
   console.log(`Server running on port ${PORT}`);

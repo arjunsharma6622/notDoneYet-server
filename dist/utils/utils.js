@@ -23,7 +23,7 @@ const connectDB = () => __awaiter(void 0, void 0, void 0, function* () {
         if (!mongoURL) {
             throw new Error("MongoDB URL is not provided in environment variables");
         }
-        const db = yield mongoose_1.default.connect(mongoURL);
+        yield mongoose_1.default.connect(mongoURL);
         console.log(`DB Connected Successfully!!!🙂`);
     }
     catch (error) {
