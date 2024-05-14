@@ -1,4 +1,4 @@
-import mongoose, {Document} from "mongoose";
+import mongoose, { Document } from "mongoose";
 
 export interface Experience {
   title: string;
@@ -35,6 +35,7 @@ export interface Education {
 export interface UserDocument extends Document {
   name: string;
   email: string;
+  userName: string;
   password?: string;
   googleId?: string;
   image: string;
@@ -55,6 +56,7 @@ export interface UserDocument extends Document {
   profileLikes?: mongoose.Schema.Types.ObjectId[];
   likedProfiles?: mongoose.Schema.Types.ObjectId[];
   conversations?: mongoose.Schema.Types.ObjectId[];
+  products: mongoose.Schema.Types.ObjectId[];
 }
 
 const experienceSchema = new mongoose.Schema<Experience>(
@@ -84,7 +86,7 @@ const experienceSchema = new mongoose.Schema<Experience>(
     current: { type: Boolean },
     specialization: { type: String },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 const educationSchema = new mongoose.Schema<Education>(
@@ -97,12 +99,14 @@ const educationSchema = new mongoose.Schema<Education>(
     gpa: { type: Number },
     description: { type: String },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 const userSchema = new mongoose.Schema<UserDocument>({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
+  userName: { type: String, required: true, unique: true },
+  phone: { type: String },
   password: { type: String, select: false },
   googleId: { type: String },
   image: {
@@ -120,8 +124,8 @@ const userSchema = new mongoose.Schema<UserDocument>({
     default: "user",
     enum: ["user", "doctor", "athlete", "venueOwner", "brand", "root"],
   },
-  profileLikes : [{type: mongoose.Schema.Types.ObjectId, ref: "User"}],
-  likedProfiles : [{type: mongoose.Schema.Types.ObjectId, ref: "User"}],
+  profileLikes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  likedProfiles: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   address: {
     street: { type: String },
     city: { type: String },
@@ -139,7 +143,10 @@ const userSchema = new mongoose.Schema<UserDocument>({
   education: [educationSchema],
   sports: [String],
   skills: [String],
-  conversations: [{ type: mongoose.Schema.Types.ObjectId, ref: "Conversation" }],
+  conversations: [
+    { type: mongoose.Schema.Types.ObjectId, ref: "Conversation" },
+  ],
+  products: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
 });
 
 export const User = mongoose.model<UserDocument>("User", userSchema);

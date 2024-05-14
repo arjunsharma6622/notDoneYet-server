@@ -43,6 +43,8 @@ const educationSchema = new mongoose_1.default.Schema({
 const userSchema = new mongoose_1.default.Schema({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
+    userName: { type: String, required: true, unique: true },
+    phone: { type: String },
     password: { type: String, select: false },
     googleId: { type: String },
     image: {
@@ -77,6 +79,9 @@ const userSchema = new mongoose_1.default.Schema({
     education: [educationSchema],
     sports: [String],
     skills: [String],
-    conversations: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: "Conversation" }],
+    conversations: [
+        { type: mongoose_1.default.Schema.Types.ObjectId, ref: "Conversation" },
+    ],
+    products: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: "Product" }],
 });
 exports.User = mongoose_1.default.model("User", userSchema);

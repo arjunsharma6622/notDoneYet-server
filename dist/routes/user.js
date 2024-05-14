@@ -57,6 +57,24 @@ router.get("/following/:id", (req, res) => __awaiter(void 0, void 0, void 0, fun
         res.status(500).json({ error: "Internal Server Error" });
     }
 }));
+// get user Details using the userName and userRole from query
+router.get("/profile/details", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        let { role, userName } = req.query;
+        if (role === 'venue') {
+            role = 'venueOwner';
+        }
+        const user = yield user_1.User.findOne({ role, userName });
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        res.status(200).json(user);
+    }
+    catch (err) {
+        console.error(`Error fetching users: ${err}`);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+}));
 // get recommended users
 router.get("/recommended/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {

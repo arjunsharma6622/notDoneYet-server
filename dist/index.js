@@ -10,6 +10,7 @@ const user_1 = __importDefault(require("./routes/user"));
 const posts_1 = __importDefault(require("./routes/posts"));
 const venue_1 = __importDefault(require("./routes/venue"));
 const conversation_1 = __importDefault(require("./routes/conversation"));
+const product_1 = __importDefault(require("./routes/product"));
 const cors_1 = __importDefault(require("cors"));
 const app = (0, express_1.default)();
 const corsOptions = {
@@ -29,6 +30,7 @@ app.use("/api/user", user_1.default);
 app.use("/api/posts", posts_1.default);
 app.use("/api/venue", venue_1.default);
 app.use("/api/conversation", conversation_1.default);
+app.use("/api/product", product_1.default);
 app.listen(8000, () => {
     console.log(`Server running on port ${PORT}`);
 });

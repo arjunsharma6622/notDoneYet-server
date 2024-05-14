@@ -44,6 +44,26 @@ router.get("/following/:id", async (req : Request, res : Response) => {
   }
 })
 
+// get user Details using the userName and userRole from query
+router.get("/profile/details", async (req : Request, res : Response) => {
+  try {
+    let { role, userName } = req.query;
+
+    if(role === 'venue'){
+      role = 'venueOwner'
+    }
+
+    const user = await User.findOne({ role, userName });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.status(200).json(user);
+  } catch (err) {
+    console.error(`Error fetching users: ${err}`);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+})
+
 // get recommended users
 router.get("/recommended/:id", async (req : Request, res : Response) => {
   try {

@@ -5,6 +5,7 @@ import userRoutes from "./routes/user";
 import postRoutes from "./routes/posts";
 import venueRoutes from "./routes/venue";
 import conversationRoutes from "./routes/conversation";
+import productRoutes from "./routes/product";
 import cors, { CorsOptions } from "cors";
 
 const app = express();
@@ -31,6 +32,7 @@ app.use("/api/user", userRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/venue", venueRoutes)
 app.use("/api/conversation", conversationRoutes)
+app.use("/api/product", productRoutes)
 
 app.listen(8000, () => {
   console.log(`Server running on port ${PORT}`);
