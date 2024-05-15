@@ -74,4 +74,34 @@ router.post("/", async (req, res) => {
   }
 });
 
+// edit product
+router.put("/:id", async(req, res) => {
+  try{
+    const productId = req.params.id;
+    const productBody: any = req.body;
+    const product = await Product.findByIdAndUpdate(productId, productBody, {new: true});
+    res.status(200).json(product);
+  }catch(err){
+    console.error(`Error editing product: ${err}`);
+    res.status(500).json({ message: err });
+  }
+})
+
+// delete product
+router.delete("/:id", async(req, res) => {
+  try{
+    //remove product
+    const productId = req.params.id;
+    const product = await Product.findByIdAndDelete(productId);
+    //remove product from user
+    const user:any = await User.findById(product?.user);
+    user?.products.pull(productId);
+    await user?.save();
+    res.status(200).json(product);
+  }catch(err){
+    console.error(`Error deleting product: ${err}`);
+    res.status(500).json({ message: err });
+  }
+})
+
 export default router;

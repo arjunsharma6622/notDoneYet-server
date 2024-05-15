@@ -82,4 +82,34 @@ router.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(500).json({ message: err });
     }
 }));
+// edit product
+router.put("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const productId = req.params.id;
+        const productBody = req.body;
+        const product = yield product_1.Product.findByIdAndUpdate(productId, productBody, { new: true });
+        res.status(200).json(product);
+    }
+    catch (err) {
+        console.error(`Error editing product: ${err}`);
+        res.status(500).json({ message: err });
+    }
+}));
+// delete product
+router.delete("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        //remove product
+        const productId = req.params.id;
+        const product = yield product_1.Product.findByIdAndDelete(productId);
+        //remove product from user
+        const user = yield user_1.User.findById(product === null || product === void 0 ? void 0 : product.user);
+        user === null || user === void 0 ? void 0 : user.products.pull(productId);
+        yield (user === null || user === void 0 ? void 0 : user.save());
+        res.status(200).json(product);
+    }
+    catch (err) {
+        console.error(`Error deleting product: ${err}`);
+        res.status(500).json({ message: err });
+    }
+}));
 exports.default = router;
