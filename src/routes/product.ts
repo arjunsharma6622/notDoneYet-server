@@ -14,6 +14,18 @@ router.get("/", async (_req, res) => {
   }
 });
 
+// get product by id
+router.get("/productData/:id", async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const product = await Product.findById(productId);
+    res.status(200).json(product);
+  } catch (err) {
+    console.error(`Error fetching product: ${err}`);
+    res.status(500).json({ message: err });
+  }
+});
+
 // get all products of user
 router.get("/user", async (req, res) => {
   try {
@@ -30,18 +42,28 @@ router.get("/user", async (req, res) => {
     }
 
     let userProducts = null;
+    let user: any = null;
 
     if (userName) {
-      const user = await User.findOne({ userName })
-        .select("products")
+      user = await User.findOne({ userName })
+        .select("userName products")
         .populate("products");
       userProducts = user?.products;
     } else if (userId) {
-      const user = await User.findById(userId)
-        .select("products")
+      user = await User.findById(userId)
+        .select("userName products")
         .populate("products");
       userProducts = user?.products;
     }
+
+    // Adding brandUserName to all the products
+    if (userProducts && user) {
+      userProducts = userProducts.map((product: any) => ({
+        ...product.toObject(), // convert mongoose document to plain object
+        brandUserName: user?.userName,
+      }));
+    }
+
     res.status(200).json(userProducts);
   } catch (err) {
     console.error(`Error fetching products: ${err}`);
@@ -75,33 +97,35 @@ router.post("/", async (req, res) => {
 });
 
 // edit product
-router.put("/:id", async(req, res) => {
-  try{
+router.put("/:id", async (req, res) => {
+  try {
     const productId = req.params.id;
     const productBody: any = req.body;
-    const product = await Product.findByIdAndUpdate(productId, productBody, {new: true});
+    const product = await Product.findByIdAndUpdate(productId, productBody, {
+      new: true,
+    });
     res.status(200).json(product);
-  }catch(err){
+  } catch (err) {
     console.error(`Error editing product: ${err}`);
     res.status(500).json({ message: err });
   }
-})
+});
 
 // delete product
-router.delete("/:id", async(req, res) => {
-  try{
+router.delete("/:id", async (req, res) => {
+  try {
     //remove product
     const productId = req.params.id;
     const product = await Product.findByIdAndDelete(productId);
     //remove product from user
-    const user:any = await User.findById(product?.user);
+    const user: any = await User.findById(product?.user);
     user?.products.pull(productId);
     await user?.save();
     res.status(200).json(product);
-  }catch(err){
+  } catch (err) {
     console.error(`Error deleting product: ${err}`);
     res.status(500).json({ message: err });
   }
-})
+});
 
 export default router;

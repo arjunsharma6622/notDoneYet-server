@@ -27,6 +27,18 @@ router.get("/", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(500).json({ message: err });
     }
 }));
+// get product by id
+router.get("/productData/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const productId = req.params.id;
+        const product = yield product_1.Product.findById(productId);
+        res.status(200).json(product);
+    }
+    catch (err) {
+        console.error(`Error fetching product: ${err}`);
+        res.status(500).json({ message: err });
+    }
+}));
 // get all products of user
 router.get("/user", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -41,17 +53,22 @@ router.get("/user", (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             throw new Error("User ID or User Name is required");
         }
         let userProducts = null;
+        let user = null;
         if (userName) {
-            const user = yield user_1.User.findOne({ userName })
-                .select("products")
+            user = yield user_1.User.findOne({ userName })
+                .select("userName products")
                 .populate("products");
             userProducts = user === null || user === void 0 ? void 0 : user.products;
         }
         else if (userId) {
-            const user = yield user_1.User.findById(userId)
-                .select("products")
+            user = yield user_1.User.findById(userId)
+                .select("userName products")
                 .populate("products");
             userProducts = user === null || user === void 0 ? void 0 : user.products;
+        }
+        // Adding brandUserName to all the products
+        if (userProducts && user) {
+            userProducts = userProducts.map((product) => (Object.assign(Object.assign({}, product.toObject()), { brandUserName: user === null || user === void 0 ? void 0 : user.userName })));
         }
         res.status(200).json(userProducts);
     }
@@ -87,7 +104,9 @@ router.put("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     try {
         const productId = req.params.id;
         const productBody = req.body;
-        const product = yield product_1.Product.findByIdAndUpdate(productId, productBody, { new: true });
+        const product = yield product_1.Product.findByIdAndUpdate(productId, productBody, {
+            new: true,
+        });
         res.status(200).json(product);
     }
     catch (err) {
