@@ -83,5 +83,6 @@ const userSchema = new mongoose_1.default.Schema({
         { type: mongoose_1.default.Schema.Types.ObjectId, ref: "Conversation" },
     ],
     products: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: "Product" }],
+    savedPosts: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: "Post" }]
 });
 exports.User = mongoose_1.default.model("User", userSchema);

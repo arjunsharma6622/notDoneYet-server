@@ -57,6 +57,7 @@ export interface UserDocument extends Document {
   likedProfiles?: mongoose.Schema.Types.ObjectId[];
   conversations?: mongoose.Schema.Types.ObjectId[];
   products: mongoose.Schema.Types.ObjectId[];
+  savedPosts : mongoose.Schema.Types.ObjectId[]
 }
 
 const experienceSchema = new mongoose.Schema<Experience>(
@@ -147,6 +148,7 @@ const userSchema = new mongoose.Schema<UserDocument>({
     { type: mongoose.Schema.Types.ObjectId, ref: "Conversation" },
   ],
   products: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
+  savedPosts : [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }]
 });
 
 export const User = mongoose.model<UserDocument>("User", userSchema);

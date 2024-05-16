@@ -61,8 +61,8 @@ router.get("/following/:id", (req, res) => __awaiter(void 0, void 0, void 0, fun
 router.get("/profile/details", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let { role, userName } = req.query;
-        if (role === 'venue') {
-            role = 'venueOwner';
+        if (role === "venue") {
+            role = "venueOwner";
         }
         const user = yield user_1.User.findOne({ role, userName });
         if (!user) {
@@ -103,6 +103,33 @@ router.patch("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* (
             return res.status(404).json({ error: "User not found" });
         }
         res.status(200).json(user);
+    }
+    catch (err) {
+        console.error(`Error updating user: ${err}`);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+}));
+// save post to user's saved posts
+router.post("/post/toggleSavePost", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { userId, postId } = req.body;
+        let message = '';
+        const user = yield user_1.User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        // check if post is already saved
+        if (user.savedPosts.includes(postId)) {
+            const finalPosts = user.savedPosts.filter((id) => id.toString() !== postId);
+            user.savedPosts = finalPosts;
+            message = 'Post removed from saved posts';
+        }
+        else {
+            user.savedPosts.push(postId);
+            message = 'Post added to saved posts';
+        }
+        yield user.save();
+        res.status(200).json({ message });
     }
     catch (err) {
         console.error(`Error updating user: ${err}`);
