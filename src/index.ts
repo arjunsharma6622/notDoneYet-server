@@ -7,6 +7,7 @@ import venueRoutes from "./routes/venue";
 import conversationRoutes from "./routes/conversation";
 import productRoutes from "./routes/product";
 import cors, { CorsOptions } from "cors";
+import { User } from "./models/user";
 
 const app = express();
 
@@ -30,9 +31,26 @@ app.get("/", (_req: Request, res: Response) => {
 
 app.use("/api/user", userRoutes);
 app.use("/api/posts", postRoutes);
-app.use("/api/venue", venueRoutes)
-app.use("/api/conversation", conversationRoutes)
-app.use("/api/product", productRoutes)
+app.use("/api/venue", venueRoutes);
+app.use("/api/conversation", conversationRoutes);
+app.use("/api/product", productRoutes);
+
+app.get("/api/checkUserName", async (req, res) => {
+  try {
+    const { userName } = req.query;
+    if (!userName) {
+      return res.status(400).json({ error: "User Name is required" });
+    }
+    const user = await User.findOne({ userName });
+    if (user) {
+      return res.status(200).json({ message: "User Name is already taken", available : false });
+    }
+    return res.status(200).json({ message: "User Name is available", available : true });
+  } catch (err) {
+    console.error(`Error fetching users: ${err}`);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 
 app.listen(8000, () => {
   console.log(`Server running on port ${PORT}`);
