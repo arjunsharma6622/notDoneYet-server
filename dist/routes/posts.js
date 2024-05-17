@@ -34,7 +34,7 @@ router.get("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         const post = yield post_1.Post.findById(postId)
             .populate({
             path: "user",
-            select: "name image bio followers following role",
+            select: "name image bio followers following role userName",
         })
             .populate({
             path: "comments",
@@ -57,7 +57,7 @@ router.get("/user/:id", (req, res) => __awaiter(void 0, void 0, void 0, function
     try {
         const userId = req.params.id;
         const posts = yield post_1.Post.find({ user: userId })
-            .populate({ path: "user", select: "name image bio role" })
+            .populate({ path: "user", select: "name image bio role followers userName" })
             .populate({
             path: "comments",
             populate: { path: "user", select: "name image" },
@@ -94,7 +94,7 @@ router.get("/recommended/:id", (req, res) => __awaiter(void 0, void 0, void 0, f
         })
             .populate({
             path: "user",
-            select: "name image bio role",
+            select: "name image bio role userName followers",
         })
             .populate({
             path: "comments",

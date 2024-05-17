@@ -61,9 +61,6 @@ router.get("/following/:id", (req, res) => __awaiter(void 0, void 0, void 0, fun
 router.get("/profile/details", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let { role, userName } = req.query;
-        if (role === "venue") {
-            role = "venueOwner";
-        }
         const user = yield user_1.User.findOne({ role, userName });
         if (!user) {
             return res.status(404).json({ error: "User not found" });

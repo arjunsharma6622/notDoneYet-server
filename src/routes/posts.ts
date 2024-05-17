@@ -21,7 +21,7 @@ router.get("/:id", async (req, res) => {
     const post = await Post.findById(postId)
       .populate({
         path: "user",
-        select: "name image bio followers following role",
+        select: "name image bio followers following role userName",
       })
       .populate({
         path: "comments",
@@ -45,7 +45,7 @@ router.get("/user/:id", async (req, res) => {
   try {
     const userId = req.params.id;
     const posts = await Post.find({ user: userId })
-      .populate({ path: "user", select: "name image bio role" })
+      .populate({ path: "user", select: "name image bio role followers userName" })
       .populate({
         path: "comments",
         populate: { path: "user", select: "name image" },
@@ -84,7 +84,7 @@ router.get("/recommended/:id", async (req, res) => {
     })
       .populate({
         path: "user",
-        select: "name image bio role",
+        select: "name image bio role userName followers",
       })
       .populate({
         path: "comments",

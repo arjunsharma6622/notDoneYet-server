@@ -40,7 +40,7 @@ export interface UserDocument extends Document {
   googleId?: string;
   image: string;
   backgroundImg: string;
-  role: "user" | "doctor" | "athlete" | "venueOwner" | "brand" | "root";
+  role: "user" | "doctor" | "athlete" | "venue" | "brand" | "root";
   venues?: mongoose.Schema.Types.ObjectId[];
   about?: string;
   bio?: string;
@@ -123,7 +123,7 @@ const userSchema = new mongoose.Schema<UserDocument>({
   role: {
     type: String,
     default: "user",
-    enum: ["user", "doctor", "athlete", "venueOwner", "brand", "root"],
+    enum: ["user", "doctor", "athlete", "venue", "brand", "root"],
   },
   profileLikes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   likedProfiles: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],

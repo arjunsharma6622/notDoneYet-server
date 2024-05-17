@@ -58,7 +58,7 @@ const userSchema = new mongoose_1.default.Schema({
     role: {
         type: String,
         default: "user",
-        enum: ["user", "doctor", "athlete", "venueOwner", "brand", "root"],
+        enum: ["user", "doctor", "athlete", "venue", "brand", "root"],
     },
     profileLikes: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: "User" }],
     likedProfiles: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: "User" }],
