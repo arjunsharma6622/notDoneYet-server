@@ -12,6 +12,28 @@ const ReviewSchema = new Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
+/* 
+---------------------------------------------------------------
+A VENUE_PAGE will be having all the details of that venue like
+---------------------------------------------------------------
+ - venue banners [offers, advertising, banners related to venue, current events, achievements etc...]
+ - name, description, location, contact details [phone, whatsapp, mail, social links], GMaps
+ - owner name
+ - venue images, videos, media
+ - amamenities
+ - sports [here all the sports available to play in venue will be listed like basketball, swimming etc...]
+    --------------------------
+    - SPORTS STRUCTURE will be
+    --------------------------
+      - Name of the sport
+      - Images of it
+      - Dimensions of the pitch, ground, area depending on the sport
+      - Availability, slots
+      - pricing [per hr, or anything depending on venue owner]
+ - It's Previous Events, bookings
+ - Ratings and Reviews
+*/
+
 const VenueSchema = new Schema({
   name: String,
   location: {

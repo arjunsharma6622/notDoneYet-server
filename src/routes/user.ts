@@ -49,6 +49,10 @@ router.get("/profile/details", async (req: Request, res: Response) => {
   try {
     let { role, userName } = req.query;
 
+    if(!role || !userName){
+      return res.status(404).json({ error: "User not found" });
+    }
+
     const user = await User.findOne({ role, userName });
     if (!user) {
       return res.status(404).json({ error: "User not found" });

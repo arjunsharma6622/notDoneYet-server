@@ -107,4 +107,20 @@ router.patch("/:id", async (req, res) => {
   }
 });
 
+
+// delete a venue by id
+router.delete("/:id", async (req, res) => {
+  try {
+    const venueId = req.params.id;
+    const deletedVenue = await Venue.findByIdAndDelete(venueId);
+    if (!deletedVenue) {
+      return res.status(404).json({ error: "Venue not found" });
+    }
+    res.status(200).json(deletedVenue);
+  } catch (err) {
+    console.error(`Error deleting venue: ${err}`);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 export default router;
