@@ -22,6 +22,7 @@ const conversation_1 = __importDefault(require("./routes/conversation"));
 const product_1 = __importDefault(require("./routes/product"));
 const cors_1 = __importDefault(require("cors"));
 const user_2 = require("./models/user");
+const venue_2 = require("./models/venue");
 const app = (0, express_1.default)();
 const corsOptions = {
     origin: ["http://localhost:3000", "https://notdoneyet.vercel.app"],
@@ -55,6 +56,24 @@ app.get("/api/checkUserName", (req, res) => __awaiter(void 0, void 0, void 0, fu
     }
     catch (err) {
         console.error(`Error fetching users: ${err}`);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+}));
+// check unique name available
+app.get("/api/checkVenueName", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { name } = req.query;
+        if (!name) {
+            return res.status(400).json({ error: "Venue Name is required" });
+        }
+        const venue = yield venue_2.Venue.findOne({ name });
+        if (venue) {
+            return res.status(200).json({ message: "Venue Name is already taken", available: false });
+        }
+        return res.status(200).json({ message: "Venue Name is available", available: true });
+    }
+    catch (err) {
+        console.error(`Error fetching venues: ${err}`);
         res.status(500).json({ error: "Internal Server Error" });
     }
 }));

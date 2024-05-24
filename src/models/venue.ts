@@ -50,7 +50,7 @@ const VenueSchema = new Schema({
   description: String,
   owner: { type: Schema.Types.ObjectId, ref: "User" },
   pricing: [PricingSchema],
-
+  uniqueName : {type: String, unique: true},
   timing: {
     startTime: String,
     endTime: String,

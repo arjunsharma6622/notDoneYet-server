@@ -49,6 +49,7 @@ const VenueSchema = new mongoose_1.Schema({
     description: String,
     owner: { type: mongoose_1.Schema.Types.ObjectId, ref: "User" },
     pricing: [PricingSchema],
+    uniqueName: { type: String, unique: true },
     timing: {
         startTime: String,
         endTime: String,

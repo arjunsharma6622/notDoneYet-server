@@ -30,6 +30,21 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+// get venue by unique name
+router.get("/uniqueName/:uniqueName", async (req, res) => {
+  try {
+    const uniqueName = req.params.uniqueName;
+    const venue = await Venue.findOne({ uniqueName });
+    if (!venue) {
+      return res.status(404).json({ error: "Venue not found" });
+    }
+    res.status(200).json(venue);
+  } catch (err) {
+    console.error(`Error fetching venues: ${err}`);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+  })
+
 // get user venues of a user by userId
 router.get("/user/:id", async (req, res) => {
   try {

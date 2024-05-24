@@ -42,6 +42,21 @@ router.get("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         res.status(500).json({ error: "Internal Server Error" });
     }
 }));
+// get venue by unique name
+router.get("/uniqueName/:uniqueName", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const uniqueName = req.params.uniqueName;
+        const venue = yield venue_1.Venue.findOne({ uniqueName });
+        if (!venue) {
+            return res.status(404).json({ error: "Venue not found" });
+        }
+        res.status(200).json(venue);
+    }
+    catch (err) {
+        console.error(`Error fetching venues: ${err}`);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+}));
 // get user venues of a user by userId
 router.get("/user/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
