@@ -16,7 +16,6 @@ const ReviewSchema = new Schema({
 ---------------------------------------------------------------
 A VENUE_PAGE will be having all the details of that venue like
 ---------------------------------------------------------------
- - venue banners [offers, advertising, banners related to venue, current events, achievements etc...]
  - name, description, location, contact details [phone, whatsapp, mail, social links], GMaps
  - owner name
  - venue images, videos, media
@@ -34,6 +33,13 @@ A VENUE_PAGE will be having all the details of that venue like
  - Ratings and Reviews
 */
 
+const sportSchema = new Schema({
+  name: String,
+  images: [String],
+  slots: Number,
+  pricing: [PricingSchema],
+})
+
 const VenueSchema = new Schema({
   name: String,
   location: {
@@ -49,14 +55,16 @@ const VenueSchema = new Schema({
   images: [String],
   description: String,
   owner: { type: Schema.Types.ObjectId, ref: "User" },
-  pricing: [PricingSchema],
   uniqueName : {type: String, unique: true},
   timing: {
     startTime: String,
     endTime: String,
   },
-
+  number : {type: Number, default: 0},
+  amenities: [String],
+  sports: [String],
+  reviews: [{ type: Schema.Types.ObjectId, ref: "Review" }],
   bookings: [{ type: Schema.Types.ObjectId, ref: "Booking" }],
-});
+}, {timestamps: true});
 
 export const Venue = model("Venue", VenueSchema);

@@ -50,9 +50,13 @@ app.get("/api/checkUserName", (req, res) => __awaiter(void 0, void 0, void 0, fu
         }
         const user = yield user_2.User.findOne({ userName });
         if (user) {
-            return res.status(200).json({ message: "User Name is already taken", available: false });
+            return res
+                .status(200)
+                .json({ message: "User Name is already taken", available: false });
         }
-        return res.status(200).json({ message: "User Name is available", available: true });
+        return res
+            .status(200)
+            .json({ message: "User Name is available", available: true });
     }
     catch (err) {
         console.error(`Error fetching users: ${err}`);
@@ -68,12 +72,30 @@ app.get("/api/checkVenueName", (req, res) => __awaiter(void 0, void 0, void 0, f
         }
         const venue = yield venue_2.Venue.findOne({ name });
         if (venue) {
-            return res.status(200).json({ message: "Venue Name is already taken", available: false });
+            return res
+                .status(200)
+                .json({ message: "Venue Name is already taken", available: false });
         }
-        return res.status(200).json({ message: "Venue Name is available", available: true });
+        return res
+            .status(200)
+            .json({ message: "Venue Name is available", available: true });
     }
     catch (err) {
         console.error(`Error fetching venues: ${err}`);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+}));
+app.get("/api/images/deleteImage", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { imageUrl } = req.query;
+        if (!imageUrl) {
+            return res.status(400).json({ error: "Image URL is required" });
+        }
+        const cldRes = yield (0, utils_1.deleteImageFromCloudinary)({ secureUrl: imageUrl });
+        return res.status(200).json(Object.assign(Object.assign({}, cldRes), { message: "Image deleted successfully" }));
+    }
+    catch (err) {
+        console.error(`Error deleting image: ${err}`);
         res.status(500).json({ error: "Internal Server Error" });
     }
 }));

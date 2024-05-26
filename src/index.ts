@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import express, { Request, Response } from "express";
-import { connectDB } from "./utils/utils";
+import { connectDB, deleteImageFromCloudinary } from "./utils/utils";
 import userRoutes from "./routes/user";
 import postRoutes from "./routes/posts";
 import venueRoutes from "./routes/venue";
@@ -44,15 +44,18 @@ app.get("/api/checkUserName", async (req, res) => {
     }
     const user = await User.findOne({ userName });
     if (user) {
-      return res.status(200).json({ message: "User Name is already taken", available : false });
+      return res
+        .status(200)
+        .json({ message: "User Name is already taken", available: false });
     }
-    return res.status(200).json({ message: "User Name is available", available : true });
+    return res
+      .status(200)
+      .json({ message: "User Name is available", available: true });
   } catch (err) {
     console.error(`Error fetching users: ${err}`);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
 
 // check unique name available
 app.get("/api/checkVenueName", async (req, res) => {
@@ -63,12 +66,29 @@ app.get("/api/checkVenueName", async (req, res) => {
     }
     const venue = await Venue.findOne({ name });
     if (venue) {
-      return res.status(200).json({ message: "Venue Name is already taken", available : false });
+      return res
+        .status(200)
+        .json({ message: "Venue Name is already taken", available: false });
     }
-    return res.status(200).json({ message: "Venue Name is available", available : true });
-    
+    return res
+      .status(200)
+      .json({ message: "Venue Name is available", available: true });
   } catch (err) {
     console.error(`Error fetching venues: ${err}`);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.get("/api/images/deleteImage", async (req, res) => {
+  try {
+    const { imageUrl } = req.query;
+    if (!imageUrl) {
+      return res.status(400).json({ error: "Image URL is required" });
+    }
+    const cldRes = await deleteImageFromCloudinary({ secureUrl: imageUrl as string });
+    return res.status(200).json({ ...cldRes, message: "Image deleted successfully" });
+  } catch (err) {
+    console.error(`Error deleting image: ${err}`);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });

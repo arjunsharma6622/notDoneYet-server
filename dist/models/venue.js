@@ -16,7 +16,6 @@ const ReviewSchema = new mongoose_1.Schema({
 ---------------------------------------------------------------
 A VENUE_PAGE will be having all the details of that venue like
 ---------------------------------------------------------------
- - venue banners [offers, advertising, banners related to venue, current events, achievements etc...]
  - name, description, location, contact details [phone, whatsapp, mail, social links], GMaps
  - owner name
  - venue images, videos, media
@@ -33,6 +32,12 @@ A VENUE_PAGE will be having all the details of that venue like
  - It's Previous Events, bookings
  - Ratings and Reviews
 */
+const sportSchema = new mongoose_1.Schema({
+    name: String,
+    images: [String],
+    slots: Number,
+    pricing: [PricingSchema],
+});
 const VenueSchema = new mongoose_1.Schema({
     name: String,
     location: {
@@ -48,12 +53,15 @@ const VenueSchema = new mongoose_1.Schema({
     images: [String],
     description: String,
     owner: { type: mongoose_1.Schema.Types.ObjectId, ref: "User" },
-    pricing: [PricingSchema],
     uniqueName: { type: String, unique: true },
     timing: {
         startTime: String,
         endTime: String,
     },
+    number: { type: Number, default: 0 },
+    amenities: [String],
+    sports: [String],
+    reviews: [{ type: mongoose_1.Schema.Types.ObjectId, ref: "Review" }],
     bookings: [{ type: mongoose_1.Schema.Types.ObjectId, ref: "Booking" }],
-});
+}, { timestamps: true });
 exports.Venue = (0, mongoose_1.model)("Venue", VenueSchema);

@@ -117,4 +117,16 @@ router.get("/recommended/:id", (req, res) => __awaiter(void 0, void 0, void 0, f
         res.status(500).json({ error: "Internal Server Error" });
     }
 }));
+// delete post
+router.delete("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const postId = req.params.id;
+        const post = yield post_1.Post.findByIdAndDelete(postId);
+        res.status(200).json(post);
+    }
+    catch (err) {
+        console.error(`Error deleting post: ${err}`);
+        res.status(500).json({ message: err });
+    }
+}));
 exports.default = router;

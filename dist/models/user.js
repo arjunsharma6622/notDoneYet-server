@@ -53,7 +53,7 @@ const userSchema = new mongoose_1.default.Schema({
     },
     backgroundImg: {
         type: String,
-        default: "https://www.fr.com/images/demo/fish-richardson-header-default.png",
+        default: "https://placehold.co/1000x250.png",
     },
     role: {
         type: String,

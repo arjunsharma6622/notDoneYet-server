@@ -12,8 +12,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.connectDB = exports.BASE_URL = void 0;
+exports.deleteImageFromCloudinary = exports.connectDB = exports.BASE_URL = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
+const cloudinary_1 = require("cloudinary");
 exports.BASE_URL = process.env.NODE_ENV === "development"
     ? "http://localhost:8000"
     : "https://notdoneyet-server.vercel.app";
@@ -32,3 +33,26 @@ const connectDB = () => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.connectDB = connectDB;
+const deleteImageFromCloudinary = (_a) => __awaiter(void 0, [_a], void 0, function* ({ secureUrl }) {
+    cloudinary_1.v2.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET
+    });
+    try {
+        const splitUrl = secureUrl.split("/ndy/");
+        const publicIdWithExtension = splitUrl[1];
+        const lastDotIndex = publicIdWithExtension.lastIndexOf(".");
+        const publicId = publicIdWithExtension.substring(0, lastDotIndex);
+        const res = yield cloudinary_1.v2.uploader.destroy(`ndy/${publicId}`, {
+            invalidate: true,
+        });
+        return res;
+    }
+    catch (err) {
+        console.log(err);
+        console.log('error in deleting the image from cloudinary');
+    }
+    return true;
+});
+exports.deleteImageFromCloudinary = deleteImageFromCloudinary;

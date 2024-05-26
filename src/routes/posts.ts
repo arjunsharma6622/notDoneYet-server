@@ -114,4 +114,17 @@ router.get("/recommended/:id", async (req, res) => {
 });
 
 
+// delete post
+router.delete("/:id", async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const post = await Post.findByIdAndDelete(postId);
+    res.status(200).json(post);
+  } catch (err) {
+    console.error(`Error deleting post: ${err}`);
+    res.status(500).json({ message: err });
+  }
+});
+
+
 export default router;

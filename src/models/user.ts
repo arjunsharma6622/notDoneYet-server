@@ -118,7 +118,7 @@ const userSchema = new mongoose.Schema<UserDocument>({
   backgroundImg: {
     type: String,
     default:
-      "https://www.fr.com/images/demo/fish-richardson-header-default.png",
+      "https://placehold.co/1000x250.png",
   },
   role: {
     type: String,
