@@ -74,24 +74,15 @@ router.get("/user/:id", (req, res) => __awaiter(void 0, void 0, void 0, function
 }));
 // create a new venue
 router.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
-        const { name, location, googleMapsLink, images, description, owner, pricing, timing, } = req.body;
         // check if the user exists
-        const user = yield user_1.User.findById(owner);
+        const user = yield user_1.User.findById((_a = req === null || req === void 0 ? void 0 : req.body) === null || _a === void 0 ? void 0 : _a.owner);
         if (!user) {
             return res.status(404).json({ error: "User not found" });
         }
         // create a new venue
-        const newVenue = new venue_1.Venue({
-            name,
-            location,
-            googleMapsLink,
-            images,
-            description,
-            owner,
-            pricing,
-            timing,
-        });
+        const newVenue = new venue_1.Venue(req.body);
         //   save the venue
         const savedVenue = yield newVenue.save();
         // add the venue to the user's list of venues

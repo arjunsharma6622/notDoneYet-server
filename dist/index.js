@@ -23,6 +23,7 @@ const product_1 = __importDefault(require("./routes/product"));
 const cors_1 = __importDefault(require("cors"));
 const user_2 = require("./models/user");
 const venue_2 = require("./models/venue");
+const cloudinary_1 = require("cloudinary");
 const app = (0, express_1.default)();
 const corsOptions = {
     origin: ["http://localhost:3000", "https://notdoneyet.vercel.app"],
@@ -70,7 +71,7 @@ app.get("/api/checkVenueName", (req, res) => __awaiter(void 0, void 0, void 0, f
         if (!name) {
             return res.status(400).json({ error: "Venue Name is required" });
         }
-        const venue = yield venue_2.Venue.findOne({ name });
+        const venue = yield venue_2.Venue.findOne({ uniqueName: name });
         if (venue) {
             return res
                 .status(200)
@@ -91,11 +92,38 @@ app.get("/api/images/deleteImage", (req, res) => __awaiter(void 0, void 0, void 
         if (!imageUrl) {
             return res.status(400).json({ error: "Image URL is required" });
         }
-        const cldRes = yield (0, utils_1.deleteImageFromCloudinary)({ secureUrl: imageUrl });
-        return res.status(200).json(Object.assign(Object.assign({}, cldRes), { message: "Image deleted successfully" }));
+        const cldRes = yield (0, utils_1.deleteImageFromCloudinary)({
+            secureUrl: imageUrl,
+        });
+        return res
+            .status(200)
+            .json(Object.assign(Object.assign({}, cldRes), { message: "Image deleted successfully" }));
     }
     catch (err) {
         console.error(`Error deleting image: ${err}`);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+}));
+app.get("/api/images/deleteFolder", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        cloudinary_1.v2.config({
+            cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+            api_key: process.env.CLOUDINARY_API_KEY,
+            api_secret: process.env.CLOUDINARY_API_SECRET
+        });
+        const { folderName } = req.query;
+        console.log(folderName);
+        if (!folderName) {
+            return res.status(400).json({ error: "Folder Name is required" });
+        }
+        const cldRes = yield cloudinary_1.v2.api.delete_resources_by_prefix('my_folder/');
+        console.log(cldRes);
+        return res
+            .status(200)
+            .json(Object.assign(Object.assign({}, cldRes), { message: "Folder deleted successfully" }));
+    }
+    catch (err) {
+        console.error(`Error deleting folder: ${err}`);
         res.status(500).json({ error: "Internal Server Error" });
     }
 }));

@@ -1,9 +1,9 @@
 import { Schema, model } from "mongoose";
 
-const PricingSchema = new Schema({
-  type: { type: String, enum: ["hourly", "daily"], required: true },
-  price: Number,
-});
+// const PricingSchema = new Schema({
+//   type: { type: String, enum: ["hourly", "daily"], required: true },
+//   price: Number,
+// });
 
 const ReviewSchema = new Schema({
   user: { type: Schema.Types.ObjectId, ref: "User" },
@@ -35,25 +35,48 @@ A VENUE_PAGE will be having all the details of that venue like
 
 const sportSchema = new Schema({
   name: String,
+  description: String,
   images: [String],
-  slots: Number,
-  pricing: [PricingSchema],
+  price: Number,
+  bookings :  [{ type: Schema.Types.ObjectId, ref: "Booking" }],
+  timing : {
+    startTime: String,
+    endTime : String,
+    startDay : String,
+    endDay : String
+  }
+})
+
+const amenitiesSchema = new Schema({
+  name: String,
+  icon : String,
+  category : String
+})
+
+const socialLink = new Schema({
+  name : String,
+  link : String
 })
 
 const VenueSchema = new Schema({
   name: String,
   location: {
+    address: String,
     city: String,
+    landmark : String,
     state: String,
     country: String,
-    address: String,
     zipCode: Number,
   },
+  bio : String,
+  followers : [{type: Schema.Types.ObjectId, ref: "User"}],
+  profileLikes : [{type: Schema.Types.ObjectId, ref: "User"}],
   ratings: [ReviewSchema],
   previousEvents: [{ type: Schema.Types.ObjectId, ref: "Event" }],
   googleMapsLink: String,
   images: [String],
   description: String,
+  socialLinks : [socialLink],
   owner: { type: Schema.Types.ObjectId, ref: "User" },
   uniqueName : {type: String, unique: true},
   timing: {
@@ -61,10 +84,10 @@ const VenueSchema = new Schema({
     endTime: String,
   },
   number : {type: Number, default: 0},
-  amenities: [String],
-  sports: [String],
+  amenities: [amenitiesSchema],
   reviews: [{ type: Schema.Types.ObjectId, ref: "Review" }],
-  bookings: [{ type: Schema.Types.ObjectId, ref: "Booking" }],
+  sports: [sportSchema],
+  posts: [{ type: Schema.Types.ObjectId, ref: "Post" }],
 }, {timestamps: true});
 
 export const Venue = model("Venue", VenueSchema);

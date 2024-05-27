@@ -63,34 +63,14 @@ router.get("/user/:id", async (req, res) => {
 // create a new venue
 router.post("/", async (req, res) => {
   try {
-    const {
-      name,
-      location,
-      googleMapsLink,
-      images,
-      description,
-      owner,
-      pricing,
-      timing,
-    } = req.body;
-
     // check if the user exists
-    const user: any = await User.findById(owner);
+    const user: any = await User.findById(req?.body?.owner);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
     // create a new venue
-    const newVenue = new Venue({
-      name,
-      location,
-      googleMapsLink,
-      images,
-      description,
-      owner,
-      pricing,
-      timing,
-    });
+    const newVenue = new Venue(req.body);
     //   save the venue
     const savedVenue = await newVenue.save();
 

@@ -2,10 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Venue = void 0;
 const mongoose_1 = require("mongoose");
-const PricingSchema = new mongoose_1.Schema({
-    type: { type: String, enum: ["hourly", "daily"], required: true },
-    price: Number,
-});
+// const PricingSchema = new Schema({
+//   type: { type: String, enum: ["hourly", "daily"], required: true },
+//   price: Number,
+// });
 const ReviewSchema = new mongoose_1.Schema({
     user: { type: mongoose_1.Schema.Types.ObjectId, ref: "User" },
     rating: { type: Number, min: 1, max: 5, required: true },
@@ -34,24 +34,45 @@ A VENUE_PAGE will be having all the details of that venue like
 */
 const sportSchema = new mongoose_1.Schema({
     name: String,
+    description: String,
     images: [String],
-    slots: Number,
-    pricing: [PricingSchema],
+    price: Number,
+    bookings: [{ type: mongoose_1.Schema.Types.ObjectId, ref: "Booking" }],
+    timing: {
+        startTime: String,
+        endTime: String,
+        startDay: String,
+        endDay: String
+    }
+});
+const amenitiesSchema = new mongoose_1.Schema({
+    name: String,
+    icon: String,
+    category: String
+});
+const socialLink = new mongoose_1.Schema({
+    name: String,
+    link: String
 });
 const VenueSchema = new mongoose_1.Schema({
     name: String,
     location: {
+        address: String,
         city: String,
+        landmark: String,
         state: String,
         country: String,
-        address: String,
         zipCode: Number,
     },
+    bio: String,
+    followers: [{ type: mongoose_1.Schema.Types.ObjectId, ref: "User" }],
+    profileLikes: [{ type: mongoose_1.Schema.Types.ObjectId, ref: "User" }],
     ratings: [ReviewSchema],
     previousEvents: [{ type: mongoose_1.Schema.Types.ObjectId, ref: "Event" }],
     googleMapsLink: String,
     images: [String],
     description: String,
+    socialLinks: [socialLink],
     owner: { type: mongoose_1.Schema.Types.ObjectId, ref: "User" },
     uniqueName: { type: String, unique: true },
     timing: {
@@ -59,9 +80,9 @@ const VenueSchema = new mongoose_1.Schema({
         endTime: String,
     },
     number: { type: Number, default: 0 },
-    amenities: [String],
-    sports: [String],
+    amenities: [amenitiesSchema],
     reviews: [{ type: mongoose_1.Schema.Types.ObjectId, ref: "Review" }],
-    bookings: [{ type: mongoose_1.Schema.Types.ObjectId, ref: "Booking" }],
+    sports: [sportSchema],
+    posts: [{ type: mongoose_1.Schema.Types.ObjectId, ref: "Post" }],
 }, { timestamps: true });
 exports.Venue = (0, mongoose_1.model)("Venue", VenueSchema);
