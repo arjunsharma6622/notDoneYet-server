@@ -7,6 +7,7 @@ exports.User = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const experienceSchema = new mongoose_1.default.Schema({
     title: { type: String, required: true },
+    type: { type: String, enum: ["training", "tournament"] },
     description: { type: String },
     location: { type: String },
     duration: { type: String },

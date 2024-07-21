@@ -6,6 +6,7 @@ import { Education, Experience, UserDocument } from "../types/user";
 const experienceSchema = new mongoose.Schema<Experience>(
   {
     title: { type: String, required: true },
+    type: { type: String, enum: ["training", "tournament"] },
     description: { type: String },
     location: { type: String },
     duration: { type: String },
