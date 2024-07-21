@@ -21,14 +21,24 @@ router.get("/", async (_req: Request, res: Response) => {
   }
 });
 
-// get user by id
-router.get("/:id", async (req: Request, res: Response) => {
+// get user by id or userName using query
+router.get("/getUser", async (req: Request, res: Response) => {
   try {
-    const userId = req.params.id;
-    const user = await User.findById(userId);
+    // ?userId=userId or ?userName=userName
+    const { userId, userName } = req.query;
+    if (!userId && !userName) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    let user;
+    if (userId) {
+      user = await User.findById(userId);
+    } else if (userName) {
+      user = await User.findOne({ userName: userName });
+    }
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
+
     res.status(200).json(user);
   } catch (err) {
     console.error(`Error fetching users: ${err}`);

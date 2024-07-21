@@ -33,11 +33,21 @@ router.get("/", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(500).json({ error: "Internal Server Error" });
     }
 }));
-// get user by id
-router.get("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+// get user by id or userName using query
+router.get("/getUser", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const userId = req.params.id;
-        const user = yield user_1.User.findById(userId);
+        // ?userId=userId or ?userName=userName
+        const { userId, userName } = req.query;
+        if (!userId && !userName) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        let user;
+        if (userId) {
+            user = yield user_1.User.findById(userId);
+        }
+        else if (userName) {
+            user = yield user_1.User.findOne({ userName: userName });
+        }
         if (!user) {
             return res.status(404).json({ error: "User not found" });
         }
