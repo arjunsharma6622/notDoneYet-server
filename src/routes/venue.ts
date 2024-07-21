@@ -43,7 +43,7 @@ router.get("/uniqueName/:uniqueName", async (req, res) => {
     console.error(`Error fetching venues: ${err}`);
     res.status(500).json({ error: "Internal Server Error" });
   }
-  })
+});
 
 // get user venues of a user by userId
 router.get("/user/:id", async (req, res) => {
@@ -102,6 +102,36 @@ router.patch("/:id", async (req, res) => {
   }
 });
 
+// add rating to venue
+router.patch("/rating/create", async (req, res) => {
+  try {
+    const { user, venue, rating, review }: any = req.body;
+
+    // check if the user exists
+    const userData: any = await User.findById(user);
+    if (!userData) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // check if the venue exists
+    const venueData: any = await Venue.findById(venue);
+    if (!venueData) {
+      return res.status(404).json({ error: "Venue not found" });
+    }
+
+    // update the rating
+    venueData.rating =
+      (venueData.rating * venueData.ratings.length + rating) /
+      (venueData.ratings.length + 1);
+    venueData.ratings.push({ user, rating, review });
+    await venueData.save();
+
+    res.status(200).json("Rating added successfully");
+  } catch (err) {
+    console.error(`Error adding rating: ${err}`);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 
 // delete a venue by id
 router.delete("/:id", async (req, res) => {

@@ -1,64 +1,7 @@
 import mongoose, { Document } from "mongoose";
+import { Education, Experience, UserDocument } from "../types/user";
 
-export interface Experience {
-  title: string;
-  description?: string;
-  location?: string;
-  duration?: string;
-  mediaAttachments?: {
-    links?: string;
-    images?: string;
-  }[];
-  outcome?: "win" | "loss" | "draw" | "";
-  potition?: string;
-  healthInjury?: string;
-  organization?: string;
-  coach?: string;
-  sport?: string;
-  date?: Date;
-  startDate?: Date;
-  endDate?: Date;
-  current?: boolean;
-  specialization?: string;
-}
 
-export interface Education {
-  school: string;
-  degree: string;
-  fieldOfStudy: string;
-  startDate: Date;
-  endDate: Date;
-  gpa?: number;
-  description?: string;
-}
-
-export interface UserDocument extends Document {
-  name: string;
-  email: string;
-  userName: string;
-  password?: string;
-  googleId?: string;
-  image: string;
-  backgroundImg: string;
-  role: "user" | "doctor" | "athlete" | "venue" | "brand" | "root";
-  venues?: mongoose.Schema.Types.ObjectId[];
-  about?: string;
-  bio?: string;
-  posts?: mongoose.Schema.Types.ObjectId[];
-  followers?: mongoose.Schema.Types.ObjectId[];
-  following?: mongoose.Schema.Types.ObjectId[];
-  experience?: Experience[];
-  education?: Education[];
-  sports?: string[];
-  skills?: string[];
-  address?: object;
-  phone?: string;
-  profileLikes?: mongoose.Schema.Types.ObjectId[];
-  likedProfiles?: mongoose.Schema.Types.ObjectId[];
-  conversations?: mongoose.Schema.Types.ObjectId[];
-  products: mongoose.Schema.Types.ObjectId[];
-  savedPosts : mongoose.Schema.Types.ObjectId[]
-}
 
 const experienceSchema = new mongoose.Schema<Experience>(
   {

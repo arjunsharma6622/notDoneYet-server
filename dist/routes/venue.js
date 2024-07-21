@@ -112,6 +112,33 @@ router.patch("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* (
         res.status(500).json({ error: "Internal Server Error" });
     }
 }));
+// add rating to venue
+router.patch("/rating/create", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { user, venue, rating, review } = req.body;
+        // check if the user exists
+        const userData = yield user_1.User.findById(user);
+        if (!userData) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        // check if the venue exists
+        const venueData = yield venue_1.Venue.findById(venue);
+        if (!venueData) {
+            return res.status(404).json({ error: "Venue not found" });
+        }
+        // update the rating
+        venueData.rating =
+            (venueData.rating * venueData.ratings.length + rating) /
+                (venueData.ratings.length + 1);
+        venueData.ratings.push({ user, rating, review });
+        yield venueData.save();
+        res.status(200).json("Rating added successfully");
+    }
+    catch (err) {
+        console.error(`Error adding rating: ${err}`);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+}));
 // delete a venue by id
 router.delete("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {

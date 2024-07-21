@@ -102,8 +102,8 @@ router.get("/recommended/:id", async (req, res) => {
     // Format the recommended posts to include the number of comments and likes
     const formattedRecommendedPosts = recommendedPosts.map((post) => ({
       ...post,
-      numComments: post.comments.length,
-      numLikes: post.likes.length,
+      numComments: post.comments?.length,
+      numLikes: post.likes?.length,
     }));
 
     res.status(200).json(recommendedPosts);

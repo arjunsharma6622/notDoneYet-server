@@ -5,6 +5,14 @@ const router = express.Router();
 // get all users
 router.get("/", async (_req: Request, res: Response) => {
   try {
+    // ?roles=user,admin,venue
+    const { roles } = _req.query;
+    if (roles) {
+      const rolesArray = roles.toString().trim().split(',');
+      const users = await User.find({ role: { $in: rolesArray } });
+      return res.status(200).json(users);
+    }
+
     const users = await User.find();
     res.status(200).json(users);
   } catch (err) {
@@ -49,7 +57,7 @@ router.get("/profile/details", async (req: Request, res: Response) => {
   try {
     let { role, userName } = req.query;
 
-    if(!role || !userName){
+    if (!role || !userName) {
       return res.status(404).json({ error: "User not found" });
     }
 
@@ -74,13 +82,17 @@ router.get("/recommended/:id", async (req: Request, res: Response) => {
     }
     const userFollowings: any = user.following;
     userFollowings.push(userId);
-    const recommendedUsers = await User.find({ _id: { $nin: userFollowings } });
+    const recommendedUsers = await User.find({
+      _id: { $nin: userFollowings }, role: { $nin: ["admin", "user", "venue"] }
+    });
     res.status(200).json(recommendedUsers);
   } catch (err) {
     console.error(`Error fetching users: ${err}`);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
+
 
 // update user by userId
 router.patch("/:id", async (req: Request, res: Response) => {
@@ -108,7 +120,7 @@ router.post("/post/toggleSavePost", async (req: Request, res: Response) => {
       return res.status(404).json({ error: "User not found" });
     }
     // check if post is already saved
-    if(user.savedPosts.includes(postId)){
+    if (user.savedPosts.includes(postId)) {
       const finalPosts = user.savedPosts.filter((id) => id.toString() !== postId);
       user.savedPosts = finalPosts;
       message = 'Post removed from saved posts'
@@ -117,7 +129,7 @@ router.post("/post/toggleSavePost", async (req: Request, res: Response) => {
       message = 'Post added to saved posts'
     }
     await user.save();
-    res.status(200).json({message});
+    res.status(200).json({ message });
   } catch (err) {
     console.error(`Error updating user: ${err}`);
     res.status(500).json({ error: "Internal Server Error" });

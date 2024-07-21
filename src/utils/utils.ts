@@ -42,3 +42,24 @@ export const deleteImageFromCloudinary = async ({ secureUrl }: { secureUrl: stri
 
   return true;
 };
+
+
+export const checkNameAvailability = async (Model : mongoose.Model<any>, nameField : string, nameValue : string, res : any) => {
+  try {
+    if (!nameValue) {
+      return res.status(400).json({ error: `${nameField} is required` });
+    }
+    const item = await Model.findOne({ [nameField]: nameValue });
+    if (item) {
+      return res
+        .status(200)
+        .json({ message: `${nameField} is already taken`, available: false });
+    }
+    return res
+      .status(200)
+      .json({ message: `${nameField} is available`, available: true });
+  } catch (err) {
+    console.error(`Error fetching ${nameField}: ${err}`);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};

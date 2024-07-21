@@ -1,29 +1,5 @@
-import mongoose, { Document, Schema } from "mongoose";
-
-
-// defining interface for the product document
-interface productDocument extends Document {
-  name: string;
-  images: string[];
-  category: string;
-  tags: string[];
-  gender: "male" | "female" | "unisex";
-  description: string;
-  ratings: number;
-  stock: {
-    size: string;
-    quantity: number;
-  }[];
-  totalStock: number;
-  pricing: {
-    originalPrice: number;
-    presentPrice: number;
-    discount: number;
-  };
-  sizes: string[];
-  reviews: string[];
-  user : mongoose.Schema.Types.ObjectId;
-}
+import mongoose from "mongoose";
+import { productDocument } from "../types/product";
 
 // define the schema for the product
 const productSchema = new mongoose.Schema<productDocument>({

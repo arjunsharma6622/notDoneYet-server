@@ -109,7 +109,10 @@ router.get("/recommended/:id", (req, res) => __awaiter(void 0, void 0, void 0, f
             .limit(limit)
             .lean();
         // Format the recommended posts to include the number of comments and likes
-        const formattedRecommendedPosts = recommendedPosts.map((post) => (Object.assign(Object.assign({}, post), { numComments: post.comments.length, numLikes: post.likes.length })));
+        const formattedRecommendedPosts = recommendedPosts.map((post) => {
+            var _a, _b;
+            return (Object.assign(Object.assign({}, post), { numComments: (_a = post.comments) === null || _a === void 0 ? void 0 : _a.length, numLikes: (_b = post.likes) === null || _b === void 0 ? void 0 : _b.length }));
+        });
         res.status(200).json(recommendedPosts);
     }
     catch (err) {

@@ -1,6 +1,7 @@
 import { Schema, model } from "mongoose";
+import { Comment as CommentType, PostDocument } from "../types/post";
 
-const commentSchema = new Schema(
+const commentSchema = new Schema<CommentType>(
   {
     user: {
       type: Schema.Types.ObjectId,
@@ -32,7 +33,7 @@ const commentSchema = new Schema(
   }
 );
 
-const postSchema = new Schema(
+const postSchema = new Schema<PostDocument>(
   {
     user: {
       type: Schema.Types.ObjectId,

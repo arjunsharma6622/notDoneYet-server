@@ -18,6 +18,13 @@ const router = express_1.default.Router();
 // get all users
 router.get("/", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        // ?roles=user,admin,venue
+        const { roles } = _req.query;
+        if (roles) {
+            const rolesArray = roles.toString().trim().split(',');
+            const users = yield user_1.User.find({ role: { $in: rolesArray } });
+            return res.status(200).json(users);
+        }
         const users = yield user_1.User.find();
         res.status(200).json(users);
     }
@@ -85,7 +92,9 @@ router.get("/recommended/:id", (req, res) => __awaiter(void 0, void 0, void 0, f
         }
         const userFollowings = user.following;
         userFollowings.push(userId);
-        const recommendedUsers = yield user_1.User.find({ _id: { $nin: userFollowings } });
+        const recommendedUsers = yield user_1.User.find({
+            _id: { $nin: userFollowings }, role: { $nin: ["admin", "user", "venue"] }
+        });
         res.status(200).json(recommendedUsers);
     }
     catch (err) {

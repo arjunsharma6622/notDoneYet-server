@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteImageFromCloudinary = exports.connectDB = exports.BASE_URL = void 0;
+exports.checkNameAvailability = exports.deleteImageFromCloudinary = exports.connectDB = exports.BASE_URL = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const cloudinary_1 = require("cloudinary");
 exports.BASE_URL = process.env.NODE_ENV === "development"
@@ -56,3 +56,24 @@ const deleteImageFromCloudinary = (_a) => __awaiter(void 0, [_a], void 0, functi
     return true;
 });
 exports.deleteImageFromCloudinary = deleteImageFromCloudinary;
+const checkNameAvailability = (Model, nameField, nameValue, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        if (!nameValue) {
+            return res.status(400).json({ error: `${nameField} is required` });
+        }
+        const item = yield Model.findOne({ [nameField]: nameValue });
+        if (item) {
+            return res
+                .status(200)
+                .json({ message: `${nameField} is already taken`, available: false });
+        }
+        return res
+            .status(200)
+            .json({ message: `${nameField} is available`, available: true });
+    }
+    catch (err) {
+        console.error(`Error fetching ${nameField}: ${err}`);
+        return res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+exports.checkNameAvailability = checkNameAvailability;

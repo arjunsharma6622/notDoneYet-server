@@ -1,39 +1,14 @@
 import { Schema, model } from "mongoose";
+import { Amenity, Review, SocialLink, Sport, Venue as VenueType } from "../types/venue";
 
-// const PricingSchema = new Schema({
-//   type: { type: String, enum: ["hourly", "daily"], required: true },
-//   price: Number,
-// });
-
-const ReviewSchema = new Schema({
+const ReviewSchema = new Schema<Review>({
   user: { type: Schema.Types.ObjectId, ref: "User" },
   rating: { type: Number, min: 1, max: 5, required: true },
   comment: String,
   createdAt: { type: Date, default: Date.now },
 });
 
-/* 
----------------------------------------------------------------
-A VENUE_PAGE will be having all the details of that venue like
----------------------------------------------------------------
- - name, description, location, contact details [phone, whatsapp, mail, social links], GMaps
- - owner name
- - venue images, videos, media
- - amamenities
- - sports [here all the sports available to play in venue will be listed like basketball, swimming etc...]
-    --------------------------
-    - SPORTS STRUCTURE will be
-    --------------------------
-      - Name of the sport
-      - Images of it
-      - Dimensions of the pitch, ground, area depending on the sport
-      - Availability, slots
-      - pricing [per hr, or anything depending on venue owner]
- - It's Previous Events, bookings
- - Ratings and Reviews
-*/
-
-const sportSchema = new Schema({
+const sportSchema = new Schema<Sport>({
   name: String,
   description: String,
   images: [String],
@@ -47,18 +22,18 @@ const sportSchema = new Schema({
   }
 })
 
-const amenitiesSchema = new Schema({
+const amenitiesSchema = new Schema<Amenity>({
   name: String,
   icon : String,
-  category : String
+  category : String,
 })
 
-const socialLink = new Schema({
+const socialLink = new Schema<SocialLink>({
   name : String,
   link : String
 })
 
-const VenueSchema = new Schema({
+const VenueSchema = new Schema<VenueType>({
   name: String,
   location: {
     address: String,
@@ -72,6 +47,7 @@ const VenueSchema = new Schema({
   followers : [{type: Schema.Types.ObjectId, ref: "User"}],
   profileLikes : [{type: Schema.Types.ObjectId, ref: "User"}],
   ratings: [ReviewSchema],
+  rating : Number,
   previousEvents: [{ type: Schema.Types.ObjectId, ref: "Event" }],
   googleMapsLink: String,
   images: [String],
