@@ -53,10 +53,40 @@ router.get("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
 }));
 // get user posts by userId
-router.get("/user/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+// router.get("/user/:id", async (req, res) => {
+//   try {
+//     const userId = req.params.id;
+//     const posts = await Post.find({ user: userId })
+//       .populate({ path: "user", select: "name image bio role followers userName" })
+//       .populate({
+//         path: "comments",
+//         populate: { path: "user", select: "name image" },
+//       })
+//       .populate({ path: "likes", select: "name image" })
+//       .sort({ createdAt: -1 });
+//     res.status(200).json(posts);
+//   } catch (err) {
+//     console.error(`Error fetching posts: ${err}`);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// });
+router.get("/getPosts/user", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const userId = req.params.id;
-        const posts = yield post_1.Post.find({ user: userId })
+        const { userId, userName } = req.query;
+        if (!userId && !userName) {
+            return res.status(400).json({ error: "User ID or User Name not provided" });
+        }
+        let user;
+        if (userId) {
+            user = yield user_1.User.findById(userId);
+        }
+        else if (userName) {
+            user = yield user_1.User.findOne({ userName: userName });
+        }
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        const posts = yield post_1.Post.find({ user: user._id })
             .populate({ path: "user", select: "name image bio role followers userName" })
             .populate({
             path: "comments",
