@@ -50,6 +50,12 @@ router.get("/user/:id", (req, res) => __awaiter(void 0, void 0, void 0, function
             select: "name image bio",
         })
             .exec();
+        // sort all the conversations by latest message timestamp
+        conversations.sort((a, b) => {
+            const aLastMsgTime = a.messages[a.messages.length - 1].createdAt;
+            const bLastMsgTime = b.messages[b.messages.length - 1].createdAt;
+            return bLastMsgTime - aLastMsgTime;
+        });
         res.status(200).json(conversations);
     }
     catch (err) {
@@ -116,6 +122,34 @@ router.get("/:id/unread", (req, res) => __awaiter(void 0, void 0, void 0, functi
             }
         }
         return res.status(200).json(unreadCount);
+    }
+    catch (err) {
+        console.error(`Error fetching conversations: ${err}`);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+}));
+// get the all the unread messages count of all conversations of a given userId
+router.get("/unreadCount/user/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const userId = req.params.id;
+        const conversations = yield conversation_1.Conversation.find({
+            users: { $in: [userId] },
+        });
+        let unreadCount = 0;
+        for (let i = 0; i < conversations.length; i++) {
+            let currConversationUnreadCount = 0;
+            for (let j = conversations[i].messages.length - 1; j >= 0; j--) {
+                if (conversations[i].messages[j].seen == true) {
+                    break;
+                }
+                if (((_a = conversations[i].messages[j].senderId) === null || _a === void 0 ? void 0 : _a.toString()) != userId) {
+                    currConversationUnreadCount = currConversationUnreadCount + 1;
+                }
+            }
+            unreadCount += currConversationUnreadCount;
+        }
+        return res.status(200).json({ unreadCount });
     }
     catch (err) {
         console.error(`Error fetching conversations: ${err}`);

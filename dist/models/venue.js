@@ -56,7 +56,7 @@ const VenueSchema = new mongoose_1.Schema({
         startTime: String,
         endTime: String,
     },
-    number: String,
+    phone: String,
     email: String,
     amenities: [amenitiesSchema],
     reviews: [{ type: mongoose_1.Schema.Types.ObjectId, ref: "Review" }],

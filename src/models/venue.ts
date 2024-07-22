@@ -59,7 +59,7 @@ const VenueSchema = new Schema<VenueType>({
     startTime: String,
     endTime: String,
   },
-  number : String,
+  phone : String,
   email : String,
   amenities: [amenitiesSchema],
   reviews: [{ type: Schema.Types.ObjectId, ref: "Review" }],

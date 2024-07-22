@@ -42,6 +42,12 @@ router.get("/user/:id", async (req: Request, res: Response) => {
         select: "name image bio",
       })
       .exec();
+    // sort all the conversations by latest message timestamp
+    conversations.sort((a:any, b:any) => {
+      const aLastMsgTime = a.messages[a.messages.length - 1].createdAt;
+      const bLastMsgTime = b.messages[b.messages.length - 1].createdAt;
+      return bLastMsgTime - aLastMsgTime;
+    });
     res.status(200).json(conversations);
   } catch (err) {
     console.error(`Error fetching conversations: ${err}`);
@@ -120,6 +126,36 @@ router.get("/:id/unread", async (req: Request, res: Response) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
+// get the all the unread messages count of all conversations of a given userId
+router.get("/unreadCount/user/:id", async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.id;
+    const conversations = await Conversation.find({
+      users: { $in: [userId] },
+    });
+    let unreadCount = 0;
+
+    for (let i=0; i<conversations.length; i++){
+      let currConversationUnreadCount = 0;
+      for (let j = conversations[i].messages.length - 1; j >= 0; j--) {
+        if (conversations[i].messages[j].seen == true) {
+          break;
+        }
+
+        if (conversations[i].messages[j].senderId?.toString() != userId) {
+          currConversationUnreadCount = currConversationUnreadCount + 1;
+        }
+      }
+      unreadCount += currConversationUnreadCount;
+    }
+
+    return res.status(200).json({unreadCount});
+  } catch (err) {
+    console.error(`Error fetching conversations: ${err}`);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+})
 
 // add messages via post
 router.post("/:id", async (req: Request, res: Response) => {

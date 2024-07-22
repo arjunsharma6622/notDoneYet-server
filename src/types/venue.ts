@@ -58,7 +58,7 @@ export interface Venue extends Document {
     startTime: string;
     endTime: string;
   };
-  number: string;
+  phone: string;
   email: string;
   amenities: Amenity[];
   reviews: Schema.Types.ObjectId[];
