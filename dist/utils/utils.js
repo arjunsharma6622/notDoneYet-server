@@ -12,9 +12,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkNameAvailability = exports.deleteImageFromCloudinary = exports.connectDB = exports.BASE_URL = void 0;
+exports.createJWTToken = exports.checkNameAvailability = exports.deleteImageFromCloudinary = exports.connectDB = exports.BASE_URL = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const cloudinary_1 = require("cloudinary");
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 exports.BASE_URL = process.env.NODE_ENV === "development"
     ? "http://localhost:8000"
     : "https://notdoneyet-server.vercel.app";
@@ -77,3 +80,10 @@ const checkNameAvailability = (Model, nameField, nameValue, res) => __awaiter(vo
     }
 });
 exports.checkNameAvailability = checkNameAvailability;
+const secretKey = process.env.JWT_SECRET;
+const createJWTToken = (id) => {
+    return jsonwebtoken_1.default.sign({ id }, secretKey, {
+        expiresIn: 3 * 24 * 60 * 60,
+    });
+};
+exports.createJWTToken = createJWTToken;

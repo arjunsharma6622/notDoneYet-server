@@ -8,13 +8,15 @@ import imageRoutes from "./routes/images";
 import postRoutes from "./routes/posts";
 import productRoutes from "./routes/product";
 import userRoutes from "./routes/user";
+import authRoutes from "./routes/auth";
 import venueRoutes from "./routes/venue";
+
 import { checkNameAvailability, connectDB } from "./utils/utils";
 
 const app = express();
 
 const corsOptions: CorsOptions = {
-  origin: ["http://localhost:3000", "https://notdoneyet.vercel.app"],
+  origin: ["http://localhost:3000", "https://notdoneyet.vercel.app", "*"],
   credentials: true,
   optionsSuccessStatus: 200,
 };
@@ -33,6 +35,7 @@ app.use("/api/venue", venueRoutes);
 app.use("/api/conversation", conversationRoutes);
 app.use("/api/product", productRoutes);
 app.use("/api/images", imageRoutes);
+app.use("/api/auth", authRoutes)
 
 
 app.get("/api/checkUserName", async (req, res) => {

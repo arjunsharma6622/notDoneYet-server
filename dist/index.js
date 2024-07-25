@@ -22,11 +22,12 @@ const images_1 = __importDefault(require("./routes/images"));
 const posts_1 = __importDefault(require("./routes/posts"));
 const product_1 = __importDefault(require("./routes/product"));
 const user_2 = __importDefault(require("./routes/user"));
+const auth_1 = __importDefault(require("./routes/auth"));
 const venue_2 = __importDefault(require("./routes/venue"));
 const utils_1 = require("./utils/utils");
 const app = (0, express_1.default)();
 const corsOptions = {
-    origin: ["http://localhost:3000", "https://notdoneyet.vercel.app"],
+    origin: ["http://localhost:3000", "https://notdoneyet.vercel.app", "*"],
     credentials: true,
     optionsSuccessStatus: 200,
 };
@@ -41,6 +42,7 @@ app.use("/api/venue", venue_2.default);
 app.use("/api/conversation", conversation_1.default);
 app.use("/api/product", product_1.default);
 app.use("/api/images", images_1.default);
+app.use("/api/auth", auth_1.default);
 app.get("/api/checkUserName", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { userName } = req.query;
     yield (0, utils_1.checkNameAvailability)(user_1.User, 'userName', userName, res);

@@ -1,5 +1,8 @@
 import mongoose from "mongoose";
 import { v2 as cloudinary } from 'cloudinary'
+import dotenv from "dotenv";
+dotenv.config();
+import jwt from "jsonwebtoken";
 
 export const BASE_URL =
   process.env.NODE_ENV === "development"
@@ -62,4 +65,12 @@ export const checkNameAvailability = async (Model : mongoose.Model<any>, nameFie
     console.error(`Error fetching ${nameField}: ${err}`);
     return res.status(500).json({ error: "Internal Server Error" });
   }
+};
+
+
+const secretKey : string = process.env.JWT_SECRET!;
+export const createJWTToken = (id : string) => {
+  return jwt.sign({ id }, secretKey, {
+    expiresIn: 3 * 24 * 60 * 60,
+  });
 };
