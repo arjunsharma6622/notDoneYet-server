@@ -61,7 +61,7 @@ router.post("/login", async (req: Request, res: Response) => {
         }
 
         const userToSend = {
-            id: user?._id,
+            _id: user?._id,
             name: user?.name,
             userName: user?.userName,
             email: user?.email,
@@ -83,5 +83,35 @@ router.post("/login", async (req: Request, res: Response) => {
     }
 })
 
+router.post("/updatePassowrd", async (req: Request, res: Response) => {
+    try{
+        const {email, newPassword, oldPassword} : {email : string, newPassword: string, oldPassword: string} = req.body;
+        if(!email || !newPassword || !oldPassword){
+            return res.status(400).json({error: "Missing required fields"})
+        }
+        const user = await User.findOne({email}).select("+password")
+        // here add {password : 1} as by default the password is not returned
+
+        if(!user){
+            return res.status(400).json({error: "User not found"})
+        }
+
+        const isPasswordCorrect = await compare(oldPassword, user?.password as string)  
+        if(!isPasswordCorrect){
+            return res.status(400).json({error: "Invalid credentials"})
+        }
+
+        const hashedPassword = await hash(newPassword, 10)
+        user.password = hashedPassword
+        await user.save()
+
+        res.status(200).json({message: "Password updated successfully"})
+    }
+    catch(error){
+        console.error(`Error updating password: ${error}`)
+        res.status(500).json({error: "Internal Server Error"})
+    }
+
+})
 
 export default router

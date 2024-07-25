@@ -63,7 +63,7 @@ router.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* 
             return res.status(400).json({ error: "Invalid credentials" });
         }
         const userToSend = {
-            id: user === null || user === void 0 ? void 0 : user._id,
+            _id: user === null || user === void 0 ? void 0 : user._id,
             name: user === null || user === void 0 ? void 0 : user.name,
             userName: user === null || user === void 0 ? void 0 : user.userName,
             email: user === null || user === void 0 ? void 0 : user.email,
@@ -80,6 +80,31 @@ router.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
     catch (error) {
         console.error(`Error logging in: ${error}`);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+}));
+router.post("/updatePassowrd", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { email, newPassword, oldPassword } = req.body;
+        if (!email || !newPassword || !oldPassword) {
+            return res.status(400).json({ error: "Missing required fields" });
+        }
+        const user = yield user_1.User.findOne({ email }).select("+password");
+        // here add {password : 1} as by default the password is not returned
+        if (!user) {
+            return res.status(400).json({ error: "User not found" });
+        }
+        const isPasswordCorrect = yield (0, bcryptjs_1.compare)(oldPassword, user === null || user === void 0 ? void 0 : user.password);
+        if (!isPasswordCorrect) {
+            return res.status(400).json({ error: "Invalid credentials" });
+        }
+        const hashedPassword = yield (0, bcryptjs_1.hash)(newPassword, 10);
+        user.password = hashedPassword;
+        yield user.save();
+        res.status(200).json({ message: "Password updated successfully" });
+    }
+    catch (error) {
+        console.error(`Error updating password: ${error}`);
         res.status(500).json({ error: "Internal Server Error" });
     }
 }));
