@@ -67,7 +67,10 @@ router.get("/user/:id", (req, res) => __awaiter(void 0, void 0, void 0, function
 router.get("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const conversationId = req.params.id;
-        const conversation = yield conversation_1.Conversation.findById(conversationId);
+        const conversation = yield conversation_1.Conversation.findById(conversationId).populate({
+            path: "users",
+            select: "name image bio",
+        });
         if (!conversation) {
             return res.status(404).json({ error: "Conversation not found" });
         }

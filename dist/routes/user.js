@@ -37,6 +37,7 @@ router.get("/", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
 router.get("/getUser", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // ?userId=userId or ?userName=userName
+        // console.log(req.query);
         const { userId, userName } = req.query;
         if (!userId && !userName) {
             return res.status(404).json({ error: "User not found" });
