@@ -93,7 +93,7 @@ router.get("/recommended/:id", async (req: Request, res: Response) => {
     const userFollowings: any = user.following;
     userFollowings.push(userId);
     const recommendedUsers = await User.find({
-      _id: { $nin: userFollowings }, role: { $nin: ["admin", "user", "venue"] }
+      _id: { $nin: userFollowings }, role: { $nin: ["admin", "venue"] }
     });
     res.status(200).json(recommendedUsers);
   } catch (err) {

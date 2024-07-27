@@ -103,7 +103,7 @@ router.get("/recommended/:id", (req, res) => __awaiter(void 0, void 0, void 0, f
         const userFollowings = user.following;
         userFollowings.push(userId);
         const recommendedUsers = yield user_1.User.find({
-            _id: { $nin: userFollowings }, role: { $nin: ["admin", "user", "venue"] }
+            _id: { $nin: userFollowings }, role: { $nin: ["admin", "venue"] }
         });
         res.status(200).json(recommendedUsers);
     }

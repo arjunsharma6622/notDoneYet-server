@@ -17,6 +17,9 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const express_1 = __importDefault(require("express"));
 const user_1 = require("./models/user");
 const venue_1 = require("./models/venue");
+const express_session_1 = __importDefault(require("express-session"));
+const passport_1 = __importDefault(require("passport"));
+const passport_google_oauth2_1 = require("passport-google-oauth2");
 const conversation_1 = __importDefault(require("./routes/conversation"));
 const images_1 = __importDefault(require("./routes/images"));
 const posts_1 = __importDefault(require("./routes/posts"));
@@ -27,13 +30,58 @@ const venue_2 = __importDefault(require("./routes/venue"));
 const utils_1 = require("./utils/utils");
 const app = (0, express_1.default)();
 const corsOptions = {
-    origin: ["http://localhost:3000", "https://notdoneyet.vercel.app", "*"],
+    origin: ["http://localhost:3000", "https://notdoneyet.vercel.app", ""],
     credentials: true,
     optionsSuccessStatus: 200,
 };
 app.use((0, cors_1.default)(corsOptions));
 app.use(express_1.default.json());
 dotenv_1.default.config();
+//set up session
+app.use((0, express_session_1.default)({
+    secret: process.env.SESSION_SECRET_KEY,
+    resave: false,
+    saveUninitialized: true,
+}));
+app.use(passport_1.default.initialize());
+app.use(passport_1.default.session());
+passport_1.default.use(new passport_google_oauth2_1.Strategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: "/auth/callback/google",
+    scope: ["profile", "email"]
+}, (accessToken, refreshToken, profile, done) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        console.log(profile);
+        let user = yield user_1.User.findOne({ googleId: profile.id });
+        if (!user) {
+            user = new user_1.User({
+                googleId: profile.id,
+                name: profile.displayName,
+                userName: profile.email.split("@")[0],
+                email: profile.email,
+                image: profile.picture
+            });
+            yield user.save();
+        }
+        return done(null, user);
+    }
+    catch (error) {
+        return done(error, false);
+    }
+})));
+passport_1.default.serializeUser((user, done) => {
+    done(null, user);
+});
+passport_1.default.deserializeUser((user, done) => {
+    done(null, user);
+});
+// initialize googleAuth Login
+app.get("/auth/google", passport_1.default.authenticate("google", { scope: ["profile", "email"] }));
+app.get("/auth/callback/google", passport_1.default.authenticate("google", {
+    successRedirect: "http://localhost:3000/dashboard",
+    failureRedirect: "http://localhost:3000/login"
+}));
 const PORT = process.env.PORT || 8000;
 (0, utils_1.connectDB)();
 app.use("/api/user", user_2.default);
