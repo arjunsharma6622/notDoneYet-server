@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import { User } from "../models/user";
+import { Conversation } from "../models/conversation";
 const router = express.Router();
 
 // get all users
@@ -48,6 +49,33 @@ router.get("/getUser", async (req: Request, res: Response) => {
 });
 
 // get user following
+// router.get("/following/:id", async (req: Request, res: Response) => {
+//   try {
+//     const userId = req.params.id;
+//     const user = await User.findById(userId).populate("following");
+//     if (!user) {
+//       return res.status(404).json({ error: "User not found" });
+//     }
+//     const userFollowings = user.following;
+//     userFollowings?.map((following: any) => {
+//       const followingConversations = following.conversations;
+//       const userConversations = user.conversations;
+//       // Find the common conversationId
+//       const commonConversationId = followingConversations.find((conversationId: any) =>
+//         userConversations?.includes(conversationId)
+//       );
+
+//       return {...following._doc, conversationId : commonConversationId}
+//     })
+//     res.status(200).json(userFollowings);
+//   } catch (err) {
+//     console.error(`Error fetching users: ${err}`);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// });
+
+
+// get user following
 router.get("/following/:id", async (req: Request, res: Response) => {
   try {
     const userId = req.params.id;
@@ -55,8 +83,19 @@ router.get("/following/:id", async (req: Request, res: Response) => {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-    const userFollowings = user.following;
-    res.status(200).json(userFollowings);
+
+    const userConversations = user.conversations;
+
+    const updatedUserFollowings = user?.following?.map((following: any) => {
+      const followingConversations = following.conversations;
+      // Find the common conversationId
+      const commonConversationId = followingConversations.find((conversationId: any) =>
+        userConversations?.includes(conversationId)
+      );
+      return { ...following.toObject(), conversationId: commonConversationId };
+    });
+
+    res.status(200).json(updatedUserFollowings);
   } catch (err) {
     console.error(`Error fetching users: ${err}`);
     res.status(500).json({ error: "Internal Server Error" });
@@ -104,8 +143,29 @@ router.get("/recommended/:id", async (req: Request, res: Response) => {
 });
 
 
+// router.get("/populateConversations/:id", async (req: Request, res: Response) => {
+//   try {
+//     // find all the conversations which have the userId in the users array, and push that conversation id into the userID users conversations array
+//     const userId = req.params.id;
+//     let user = await User.findById(userId)
+//     const conversations = await Conversation.find({ users: { $in: [userId] } });
+
+//     // push all the conversations ids into the userID users conversations array
+//     user?.conversations?.push(...conversations.map((conversation: any) => conversation._id));
+//     await user?.save();
+//     res.status(200).json(user?.conversations);
+//   }
+//   catch (err) {
+//     console.error(`Error fetching users: ${err}`);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// })
+
+
 
 // update user by userId
+
+
 router.patch("/:id", async (req: Request, res: Response) => {
   try {
     const userId = req.params.id;

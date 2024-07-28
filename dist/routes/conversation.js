@@ -192,4 +192,57 @@ router.post("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         res.status(500).json({ error: "Internal Server Error" });
     }
 }));
+// if it is a new message, means if already the conversation dosent exist between two users
+// then create a new conversation
+router.post("/create/new", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _b, _c;
+    try {
+        const { senderId, recipientId, content } = req.body;
+        // check if sender exists
+        const sender = yield user_1.User.findById(senderId);
+        if (!sender) {
+            return res.status(404).json({ error: "Sender not found" });
+        }
+        // check if recipient exists
+        const recipient = yield user_1.User.findById(recipientId);
+        if (!recipient) {
+            return res.status(404).json({ error: "Recipient not found" });
+        }
+        // check if a conversation already exists with these two users
+        let conversation = yield conversation_1.Conversation.findOne({
+            users: { $all: [senderId, recipientId] },
+        });
+        if (conversation) {
+            conversation.messages.push({ senderId: senderId, content: content, createdAt: new Date(), seen: false });
+            yield conversation.save();
+            const updatedConversation = yield conversation_1.Conversation.findById(conversation._id).populate({
+                path: "users",
+                select: "name image bio",
+            });
+            const recentMsg = updatedConversation.messages[updatedConversation.messages.length - 1];
+            return res.status(200).json(recentMsg);
+        }
+        // create a new conversation
+        const newConversation = new conversation_1.Conversation({
+            users: [senderId, recipientId],
+            messages: [{ senderId: senderId, content, createdAt: new Date(), seen: false }],
+        });
+        const savedConversation = yield newConversation.save();
+        // push the conversation ID to both sender and recipient
+        (_b = sender === null || sender === void 0 ? void 0 : sender.conversations) === null || _b === void 0 ? void 0 : _b.push(savedConversation === null || savedConversation === void 0 ? void 0 : savedConversation._id);
+        (_c = recipient === null || recipient === void 0 ? void 0 : recipient.conversations) === null || _c === void 0 ? void 0 : _c.push(savedConversation === null || savedConversation === void 0 ? void 0 : savedConversation._id);
+        yield sender.save();
+        yield recipient.save();
+        const updatedConversation = yield conversation_1.Conversation.findById(savedConversation._id).populate({
+            path: "users",
+            select: "name image bio",
+        });
+        const recentMsg = updatedConversation.messages[updatedConversation.messages.length - 1];
+        return res.status(200).json(recentMsg);
+    }
+    catch (err) {
+        console.error(`Error fetching conversations: ${err}`);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+}));
 exports.default = router;

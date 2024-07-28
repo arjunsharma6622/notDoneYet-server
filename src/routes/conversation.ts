@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import { Conversation } from "../models/conversation";
 import { User } from "../models/user";
+import { ObjectId } from "mongoose";
 
 const router = express.Router();
 
@@ -200,5 +201,72 @@ router.post("/:id", async (req: Request, res: Response) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
+
+// if it is a new message, means if already the conversation dosent exist between two users
+// then create a new conversation
+router.post("/create/new", async (req: Request, res: Response) => {
+  try {
+    const { senderId, recipientId, content } : any = req.body;
+    
+    // check if sender exists
+    const sender = await User.findById(senderId);
+    if (!sender) {
+      return res.status(404).json({ error: "Sender not found" });
+    }
+
+    // check if recipient exists
+    const recipient = await User.findById(recipientId);
+    if (!recipient) {
+      return res.status(404).json({ error: "Recipient not found" });
+    }
+
+    // check if a conversation already exists with these two users
+    let conversation : any = await Conversation.findOne({
+      users: { $all: [senderId, recipientId] },
+    });
+    if (conversation) {
+      conversation.messages.push({ senderId : senderId, content : content, createdAt: new Date(), seen: false});
+      await conversation.save();
+      const updatedConversation: any = await Conversation.findById(
+        conversation._id
+      ).populate({
+        path: "users",
+        select: "name image bio",
+      });
+      const recentMsg =
+        updatedConversation.messages[updatedConversation.messages.length - 1];
+      return res.status(200).json(recentMsg);
+    }
+
+    // create a new conversation
+    const newConversation = new Conversation({
+      users: [senderId, recipientId],
+      messages: [{ senderId: senderId, content, createdAt: new Date(), seen: false }],
+    });
+    const savedConversation : any = await newConversation.save();
+
+    // push the conversation ID to both sender and recipient
+    sender?.conversations?.push(savedConversation?._id);
+    recipient?.conversations?.push(savedConversation?._id);
+    await sender.save();
+    await recipient.save();
+
+    const updatedConversation: any = await Conversation.findById(
+      savedConversation._id
+    ).populate({
+      path: "users",
+      select: "name image bio",
+    });
+    const recentMsg =
+      updatedConversation.messages[updatedConversation.messages.length - 1];
+    return res.status(200).json(recentMsg);
+  } catch (err) {
+    console.error(`Error fetching conversations: ${err}`);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+
+
+})
 
 export default router;

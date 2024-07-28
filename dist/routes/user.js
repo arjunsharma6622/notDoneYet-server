@@ -60,15 +60,46 @@ router.get("/getUser", (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
 }));
 // get user following
+// router.get("/following/:id", async (req: Request, res: Response) => {
+//   try {
+//     const userId = req.params.id;
+//     const user = await User.findById(userId).populate("following");
+//     if (!user) {
+//       return res.status(404).json({ error: "User not found" });
+//     }
+//     const userFollowings = user.following;
+//     userFollowings?.map((following: any) => {
+//       const followingConversations = following.conversations;
+//       const userConversations = user.conversations;
+//       // Find the common conversationId
+//       const commonConversationId = followingConversations.find((conversationId: any) =>
+//         userConversations?.includes(conversationId)
+//       );
+//       return {...following._doc, conversationId : commonConversationId}
+//     })
+//     res.status(200).json(userFollowings);
+//   } catch (err) {
+//     console.error(`Error fetching users: ${err}`);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// });
+// get user following
 router.get("/following/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
         const userId = req.params.id;
         const user = yield user_1.User.findById(userId).populate("following");
         if (!user) {
             return res.status(404).json({ error: "User not found" });
         }
-        const userFollowings = user.following;
-        res.status(200).json(userFollowings);
+        const userConversations = user.conversations;
+        const updatedUserFollowings = (_a = user === null || user === void 0 ? void 0 : user.following) === null || _a === void 0 ? void 0 : _a.map((following) => {
+            const followingConversations = following.conversations;
+            // Find the common conversationId
+            const commonConversationId = followingConversations.find((conversationId) => userConversations === null || userConversations === void 0 ? void 0 : userConversations.includes(conversationId));
+            return Object.assign(Object.assign({}, following.toObject()), { conversationId: commonConversationId });
+        });
+        res.status(200).json(updatedUserFollowings);
     }
     catch (err) {
         console.error(`Error fetching users: ${err}`);
@@ -113,6 +144,22 @@ router.get("/recommended/:id", (req, res) => __awaiter(void 0, void 0, void 0, f
         res.status(500).json({ error: "Internal Server Error" });
     }
 }));
+// router.get("/populateConversations/:id", async (req: Request, res: Response) => {
+//   try {
+//     // find all the conversations which have the userId in the users array, and push that conversation id into the userID users conversations array
+//     const userId = req.params.id;
+//     let user = await User.findById(userId)
+//     const conversations = await Conversation.find({ users: { $in: [userId] } });
+//     // push all the conversations ids into the userID users conversations array
+//     user?.conversations?.push(...conversations.map((conversation: any) => conversation._id));
+//     await user?.save();
+//     res.status(200).json(user?.conversations);
+//   }
+//   catch (err) {
+//     console.error(`Error fetching users: ${err}`);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// })
 // update user by userId
 router.patch("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
