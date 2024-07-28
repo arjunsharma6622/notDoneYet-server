@@ -81,6 +81,7 @@ router.get("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         res.status(500).json({ error: "Internal Server Error" });
     }
 }));
+// router.get("/getConversation", async (req: Request, res: Response) => {
 // update messages seen
 router.put("/:id/seen", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {

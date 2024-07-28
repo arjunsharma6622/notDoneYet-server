@@ -74,6 +74,8 @@ router.get("/:id", async (req: Request, res: Response) => {
   }
 });
 
+// router.get("/getConversation", async (req: Request, res: Response) => {
+
 // update messages seen
 router.put("/:id/seen", async (req: Request, res: Response) => {
   try {
