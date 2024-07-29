@@ -1,4 +1,4 @@
-import express from "express";
+import express, {Request, Response} from "express";
 import { Post } from "../models/post";
 import { User } from "../models/user";
 const router = express.Router();
@@ -96,26 +96,30 @@ router.get("/getPosts/user", async (req, res) => {
 });
 
 //get user recommended posts
-router.get("/recommended/:id", async (req, res) => {
+router.get("/recommended/:id", async (req : Request, res : Response) => {
   const userId = req.params.id;
-  const page = 1;
-  const limit = 10;
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+
   try {
     // Find the user and populate their following list with only the posts field
-    const user: any = await User.findById(userId)
+    const user = await User.findById(userId)
       .populate({
         path: "following",
         select: "posts",
       })
       .lean();
 
-    // Get the posts from the users that the current user is following
-    const followingUserPosts = user?.following?.flatMap((f: any) => f.posts);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
-    // Find the recommended posts and populate the user and comments fields
+    // Get the posts from the users that the current user is following
+    const followingUserPosts = user?.following?.flatMap((f : any) => f.posts) || [];
+
+    // Find the recommended posts from the users that the current user is following
     const recommendedPosts = await Post.find({
       _id: { $in: followingUserPosts },
-      createdAt: { $gte: new Date(Date.now() - 100 * 24 * 60 * 60 * 1000) },
     })
       .populate({
         path: "user",
@@ -130,18 +134,42 @@ router.get("/recommended/:id", async (req, res) => {
       })
       .populate({ path: "likes", select: "name image _id" })
       .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit)
       .lean();
 
-    // Format the recommended posts to include the number of comments and likes
-    const formattedRecommendedPosts = recommendedPosts.map((post) => ({
+    // Find the remaining posts not in followingUserPosts
+    const remainingPosts = await Post.find({
+      _id: { $nin: [...followingUserPosts]},
+      user: { $ne: userId }
+    })
+      .populate({
+        path: "user",
+        select: "name image bio role userName followers",
+      })
+      .populate({
+        path: "comments",
+        populate: {
+          path: "user",
+          select: "name image bio role _id",
+        },
+      })
+      .populate({ path: "likes", select: "name image _id" })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // Combine recommendedPosts and remainingPosts
+    const allPosts = [...recommendedPosts, ...remainingPosts];
+
+    // Paginate the combined results
+    const paginatedPosts = allPosts.slice((page - 1) * limit, page * limit);
+
+    // Format the posts to include the number of comments and likes
+    const formattedPosts = paginatedPosts.map(post => ({
       ...post,
       numComments: post.comments?.length,
       numLikes: post.likes?.length,
     }));
 
-    res.status(200).json(recommendedPosts);
+    res.status(200).json(formattedPosts);
   } catch (err) {
     console.error(`Error fetching posts: ${err}`);
     res.status(500).json({ error: "Internal Server Error" });

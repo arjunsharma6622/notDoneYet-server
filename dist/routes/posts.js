@@ -105,8 +105,8 @@ router.get("/getPosts/user", (req, res) => __awaiter(void 0, void 0, void 0, fun
 router.get("/recommended/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const userId = req.params.id;
-    const page = 1;
-    const limit = 10;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
     try {
         // Find the user and populate their following list with only the posts field
         const user = yield user_1.User.findById(userId)
@@ -115,12 +115,14 @@ router.get("/recommended/:id", (req, res) => __awaiter(void 0, void 0, void 0, f
             select: "posts",
         })
             .lean();
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
         // Get the posts from the users that the current user is following
-        const followingUserPosts = (_a = user === null || user === void 0 ? void 0 : user.following) === null || _a === void 0 ? void 0 : _a.flatMap((f) => f.posts);
-        // Find the recommended posts and populate the user and comments fields
+        const followingUserPosts = ((_a = user === null || user === void 0 ? void 0 : user.following) === null || _a === void 0 ? void 0 : _a.flatMap((f) => f.posts)) || [];
+        // Find the recommended posts from the users that the current user is following
         const recommendedPosts = yield post_1.Post.find({
             _id: { $in: followingUserPosts },
-            createdAt: { $gte: new Date(Date.now() - 100 * 24 * 60 * 60 * 1000) },
         })
             .populate({
             path: "user",
@@ -135,15 +137,36 @@ router.get("/recommended/:id", (req, res) => __awaiter(void 0, void 0, void 0, f
         })
             .populate({ path: "likes", select: "name image _id" })
             .sort({ createdAt: -1 })
-            .skip((page - 1) * limit)
-            .limit(limit)
             .lean();
-        // Format the recommended posts to include the number of comments and likes
-        const formattedRecommendedPosts = recommendedPosts.map((post) => {
+        // Find the remaining posts not in followingUserPosts
+        const remainingPosts = yield post_1.Post.find({
+            _id: { $nin: [...followingUserPosts] },
+            user: { $ne: userId }
+        })
+            .populate({
+            path: "user",
+            select: "name image bio role userName followers",
+        })
+            .populate({
+            path: "comments",
+            populate: {
+                path: "user",
+                select: "name image bio role _id",
+            },
+        })
+            .populate({ path: "likes", select: "name image _id" })
+            .sort({ createdAt: -1 })
+            .lean();
+        // Combine recommendedPosts and remainingPosts
+        const allPosts = [...recommendedPosts, ...remainingPosts];
+        // Paginate the combined results
+        const paginatedPosts = allPosts.slice((page - 1) * limit, page * limit);
+        // Format the posts to include the number of comments and likes
+        const formattedPosts = paginatedPosts.map(post => {
             var _a, _b;
             return (Object.assign(Object.assign({}, post), { numComments: (_a = post.comments) === null || _a === void 0 ? void 0 : _a.length, numLikes: (_b = post.likes) === null || _b === void 0 ? void 0 : _b.length }));
         });
-        res.status(200).json(recommendedPosts);
+        res.status(200).json(formattedPosts);
     }
     catch (err) {
         console.error(`Error fetching posts: ${err}`);
