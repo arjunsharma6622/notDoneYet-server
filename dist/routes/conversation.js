@@ -50,10 +50,14 @@ router.get("/user/:id", (req, res) => __awaiter(void 0, void 0, void 0, function
             select: "name image bio",
         })
             .exec();
+        // if there are no messages then return empty array
+        if (conversations.length == 1) {
+            return res.status(200).json(conversations);
+        }
         // sort all the conversations by latest message timestamp
         conversations.sort((a, b) => {
-            const aLastMsgTime = a.messages[a.messages.length - 1].createdAt;
-            const bLastMsgTime = b.messages[b.messages.length - 1].createdAt;
+            const aLastMsgTime = a.messages.length > 0 ? new Date(a.messages[a.messages.length - 1].createdAt).getTime() : new Date(a.createdAt).getTime();
+            const bLastMsgTime = b.messages.length > 0 ? new Date(b.messages[b.messages.length - 1].createdAt).getTime() : new Date(b.createdAt).getTime();
             return bLastMsgTime - aLastMsgTime;
         });
         res.status(200).json(conversations);

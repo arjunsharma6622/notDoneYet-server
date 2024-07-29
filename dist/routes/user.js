@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const user_1 = require("../models/user");
+const conversation_1 = require("../models/conversation");
 const router = express_1.default.Router();
 // get all users
 router.get("/", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -197,6 +198,46 @@ router.post("/post/toggleSavePost", (req, res) => __awaiter(void 0, void 0, void
         }
         yield user.save();
         res.status(200).json({ message });
+    }
+    catch (err) {
+        console.error(`Error updating user: ${err}`);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+}));
+// toggle follow user
+router.post("/toggleFollow", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { currentUserId, selectedUserId } = req.body;
+        const currentUser = yield user_1.User.findById(currentUserId);
+        const selectedUser = yield user_1.User.findById(selectedUserId);
+        if (!currentUser || !selectedUser) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        // check if current user is following the selected user
+        if (currentUser.following.includes(selectedUserId)) {
+            // unfollow
+            currentUser.following.pull(selectedUserId);
+            selectedUser.followers.pull(currentUserId);
+        }
+        else {
+            // follow
+            currentUser.following.push(selectedUserId);
+            selectedUser.followers.push(currentUserId);
+        }
+        // first check if a conversation exists between the two users
+        let checkConversation = yield conversation_1.Conversation.findOne({ users: { $all: [currentUserId, selectedUserId] } });
+        let convoId = checkConversation ? checkConversation._id : null;
+        if (!checkConversation) {
+            // create a conversation of the two users and push that conversation id into the users conversations array
+            const conversation = new conversation_1.Conversation({ users: [currentUserId, selectedUserId] });
+            yield conversation.save();
+            convoId = conversation._id;
+            currentUser.conversations.push(conversation._id);
+            selectedUser.conversations.push(conversation._id);
+        }
+        yield currentUser.save();
+        yield selectedUser.save();
+        res.status(200).json({ message: "Success", conversationId: convoId });
     }
     catch (err) {
         console.error(`Error updating user: ${err}`);

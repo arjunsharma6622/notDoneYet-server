@@ -207,4 +207,47 @@ router.post("/post/toggleSavePost", async (req: Request, res: Response) => {
   }
 });
 
+// toggle follow user
+router.post("/toggleFollow", async (req: Request, res: Response) => {
+  try {
+    const { currentUserId, selectedUserId } = req.body;
+    const currentUser: any = await User.findById(currentUserId);
+    const selectedUser: any = await User.findById(selectedUserId);
+    if (!currentUser || !selectedUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    // check if current user is following the selected user
+    if (currentUser.following.includes(selectedUserId)) {
+      // unfollow
+      currentUser.following.pull(selectedUserId);
+      selectedUser.followers.pull(currentUserId);
+    } else {
+      // follow
+      currentUser.following.push(selectedUserId);
+      selectedUser.followers.push(currentUserId);
+    }
+
+    // first check if a conversation exists between the two users
+    let checkConversation = await Conversation.findOne({ users: { $all: [currentUserId, selectedUserId] } });
+
+    let convoId = checkConversation? checkConversation._id : null;
+
+    if (!checkConversation) {
+      // create a conversation of the two users and push that conversation id into the users conversations array
+      const conversation = new Conversation({ users: [currentUserId, selectedUserId] });
+      await conversation.save();
+      convoId = conversation._id;
+      currentUser.conversations.push(conversation._id);
+      selectedUser.conversations.push(conversation._id);
+    }
+
+    await currentUser.save();
+    await selectedUser.save();
+    res.status(200).json({ message: "Success", conversationId: convoId });
+  } catch (err) {
+    console.error(`Error updating user: ${err}`);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 export default router;
