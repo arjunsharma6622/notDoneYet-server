@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
-import { User } from "../models/user";
-import { Conversation } from "../models/conversation";
+import { User } from "../models/user.model";
+import { Conversation } from "../models/conversation.model";
 const router = express.Router();
 
 // get all users

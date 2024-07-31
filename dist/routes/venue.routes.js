@@ -13,13 +13,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const user_1 = require("../models/user");
-const venue_1 = require("../models/venue");
+const user_model_1 = require("../models/user.model");
+const venue_model_1 = require("../models/venue.model");
 const router = express_1.default.Router();
 // get all venues
 router.get("/", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const venues = yield venue_1.Venue.find();
+        const venues = yield venue_model_1.Venue.find();
         res.status(200).json(venues);
     }
     catch (err) {
@@ -31,7 +31,7 @@ router.get("/", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
 router.get("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const venueId = req.params.id;
-        const venue = yield venue_1.Venue.findById(venueId);
+        const venue = yield venue_model_1.Venue.findById(venueId);
         if (!venue) {
             return res.status(404).json({ error: "Venue not found" });
         }
@@ -46,7 +46,7 @@ router.get("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 router.get("/uniqueName/:uniqueName", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const uniqueName = req.params.uniqueName;
-        const venue = yield venue_1.Venue.findOne({ uniqueName });
+        const venue = yield venue_model_1.Venue.findOne({ uniqueName });
         if (!venue) {
             return res.status(404).json({ error: "Venue not found" });
         }
@@ -61,7 +61,7 @@ router.get("/uniqueName/:uniqueName", (req, res) => __awaiter(void 0, void 0, vo
 router.get("/user/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = req.params.id;
-        const userData = yield user_1.User.findById(userId)
+        const userData = yield user_model_1.User.findById(userId)
             .select("venues")
             .populate("venues");
         const userVenues = userData === null || userData === void 0 ? void 0 : userData.venues;
@@ -77,12 +77,12 @@ router.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
         // check if the user exists
-        const user = yield user_1.User.findById((_a = req === null || req === void 0 ? void 0 : req.body) === null || _a === void 0 ? void 0 : _a.owner);
+        const user = yield user_model_1.User.findById((_a = req === null || req === void 0 ? void 0 : req.body) === null || _a === void 0 ? void 0 : _a.owner);
         if (!user) {
             return res.status(404).json({ error: "User not found" });
         }
         // create a new venue
-        const newVenue = new venue_1.Venue(req.body);
+        const newVenue = new venue_model_1.Venue(req.body);
         //   save the venue
         const savedVenue = yield newVenue.save();
         // add the venue to the user's list of venues
@@ -99,7 +99,7 @@ router.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 router.patch("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const venueId = req.params.id;
-        const updatedVenue = yield venue_1.Venue.findByIdAndUpdate(venueId, req.body, {
+        const updatedVenue = yield venue_model_1.Venue.findByIdAndUpdate(venueId, req.body, {
             new: true,
         });
         if (!updatedVenue) {
@@ -117,12 +117,12 @@ router.patch("/rating/create", (req, res) => __awaiter(void 0, void 0, void 0, f
     try {
         const { user, venue, rating, review } = req.body;
         // check if the user exists
-        const userData = yield user_1.User.findById(user);
+        const userData = yield user_model_1.User.findById(user);
         if (!userData) {
             return res.status(404).json({ error: "User not found" });
         }
         // check if the venue exists
-        const venueData = yield venue_1.Venue.findById(venue);
+        const venueData = yield venue_model_1.Venue.findById(venue);
         if (!venueData) {
             return res.status(404).json({ error: "Venue not found" });
         }
@@ -143,7 +143,7 @@ router.patch("/rating/create", (req, res) => __awaiter(void 0, void 0, void 0, f
 router.delete("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const venueId = req.params.id;
-        const deletedVenue = yield venue_1.Venue.findByIdAndDelete(venueId);
+        const deletedVenue = yield venue_model_1.Venue.findByIdAndDelete(venueId);
         if (!deletedVenue) {
             return res.status(404).json({ error: "Venue not found" });
         }

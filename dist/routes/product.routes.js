@@ -13,13 +13,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const product_1 = require("../models/product");
-const user_1 = require("../models/user");
+const product_model_1 = require("../models/product.model");
+const user_model_1 = require("../models/user.model");
 const router = express_1.default.Router();
 // get all the products
 router.get("/", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const products = yield product_1.Product.find();
+        const products = yield product_model_1.Product.find();
         res.status(200).json(products);
     }
     catch (err) {
@@ -31,7 +31,7 @@ router.get("/", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
 router.get("/productData/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const productId = req.params.id;
-        const product = yield product_1.Product.findById(productId);
+        const product = yield product_model_1.Product.findById(productId);
         res.status(200).json(product);
     }
     catch (err) {
@@ -55,13 +55,13 @@ router.get("/user", (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         let userProducts = null;
         let user = null;
         if (userName) {
-            user = yield user_1.User.findOne({ userName })
+            user = yield user_model_1.User.findOne({ userName })
                 .select("userName products")
                 .populate("products");
             userProducts = user === null || user === void 0 ? void 0 : user.products;
         }
         else if (userId) {
-            user = yield user_1.User.findById(userId)
+            user = yield user_model_1.User.findById(userId)
                 .select("userName products")
                 .populate("products");
             userProducts = user === null || user === void 0 ? void 0 : user.products;
@@ -81,14 +81,14 @@ router.get("/user", (req, res) => __awaiter(void 0, void 0, void 0, function* ()
 router.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const productBody = req.body;
-        const product = new product_1.Product(Object.assign(Object.assign({}, productBody), { pricing: {
+        const product = new product_model_1.Product(Object.assign(Object.assign({}, productBody), { pricing: {
                 presentPrice: productBody.presentPrice,
                 originalPrice: productBody.originalPrice,
             } }));
         yield product.save();
         if (product) {
             // push the product in the user
-            const user = yield user_1.User.findById(productBody.user);
+            const user = yield user_model_1.User.findById(productBody.user);
             user === null || user === void 0 ? void 0 : user.products.push(product._id);
             yield (user === null || user === void 0 ? void 0 : user.save());
         }
@@ -104,7 +104,7 @@ router.put("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     try {
         const productId = req.params.id;
         const productBody = req.body;
-        const product = yield product_1.Product.findByIdAndUpdate(productId, productBody, {
+        const product = yield product_model_1.Product.findByIdAndUpdate(productId, productBody, {
             new: true,
         });
         res.status(200).json(product);
@@ -119,9 +119,9 @@ router.delete("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* 
     try {
         //remove product
         const productId = req.params.id;
-        const product = yield product_1.Product.findByIdAndDelete(productId);
+        const product = yield product_model_1.Product.findByIdAndDelete(productId);
         //remove product from user
-        const user = yield user_1.User.findById(product === null || product === void 0 ? void 0 : product.user);
+        const user = yield user_model_1.User.findById(product === null || product === void 0 ? void 0 : product.user);
         user === null || user === void 0 ? void 0 : user.products.pull(productId);
         yield (user === null || user === void 0 ? void 0 : user.save());
         res.status(200).json(product);

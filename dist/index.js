@@ -15,15 +15,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const express_1 = __importDefault(require("express"));
-const user_1 = require("./models/user");
-const venue_1 = require("./models/venue");
-const auth_1 = __importDefault(require("./routes/auth"));
-const conversation_1 = __importDefault(require("./routes/conversation"));
-const images_1 = __importDefault(require("./routes/images"));
-const posts_1 = __importDefault(require("./routes/posts"));
-const product_1 = __importDefault(require("./routes/product"));
-const user_2 = __importDefault(require("./routes/user"));
-const venue_2 = __importDefault(require("./routes/venue"));
+const user_model_1 = require("./models/user.model");
+const venue_model_1 = require("./models/venue.model");
+const auth_routes_1 = __importDefault(require("./routes/auth.routes"));
+const conversation_routes_1 = __importDefault(require("./routes/conversation.routes"));
+const images_routes_1 = __importDefault(require("./routes/images.routes"));
+const posts_routes_1 = __importDefault(require("./routes/posts.routes"));
+const product_routes_1 = __importDefault(require("./routes/product.routes"));
+const user_routes_1 = __importDefault(require("./routes/user.routes"));
+const venue_routes_1 = __importDefault(require("./routes/venue.routes"));
 const utils_1 = require("./utils/utils");
 const app = (0, express_1.default)();
 const corsOptions = {
@@ -83,20 +83,20 @@ dotenv_1.default.config();
 // }))
 const PORT = process.env.PORT || 8000;
 (0, utils_1.connectDB)();
-app.use("/api/user", user_2.default);
-app.use("/api/posts", posts_1.default);
-app.use("/api/venue", venue_2.default);
-app.use("/api/conversation", conversation_1.default);
-app.use("/api/product", product_1.default);
-app.use("/api/images", images_1.default);
-app.use("/api/auth", auth_1.default);
+app.use("/api/user", user_routes_1.default);
+app.use("/api/posts", posts_routes_1.default);
+app.use("/api/venue", venue_routes_1.default);
+app.use("/api/conversation", conversation_routes_1.default);
+app.use("/api/product", product_routes_1.default);
+app.use("/api/images", images_routes_1.default);
+app.use("/api/auth", auth_routes_1.default);
 app.get("/api/checkUserName", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { userName } = req.query;
-    yield (0, utils_1.checkNameAvailability)(user_1.User, 'userName', userName, res);
+    yield (0, utils_1.checkNameAvailability)(user_model_1.User, 'userName', userName, res);
 }));
 app.get("/api/checkVenueName", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { uniqueName } = req.query;
-    yield (0, utils_1.checkNameAvailability)(venue_1.Venue, 'uniqueName', uniqueName, res);
+    yield (0, utils_1.checkNameAvailability)(venue_model_1.Venue, 'uniqueName', uniqueName, res);
 }));
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

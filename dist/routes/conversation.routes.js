@@ -13,19 +13,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const conversation_1 = require("../models/conversation");
-const user_1 = require("../models/user");
+const conversation_model_1 = require("../models/conversation.model");
+const user_model_1 = require("../models/user.model");
 const router = express_1.default.Router();
 // create a new conversation
 router.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { senderId, recipientId, content } = req.body;
         // check if conversation already exists
-        let conversation = yield conversation_1.Conversation.findOne({
+        let conversation = yield conversation_model_1.Conversation.findOne({
             users: { $all: [senderId, recipientId] },
         });
         if (!conversation) {
-            conversation = new conversation_1.Conversation({
+            conversation = new conversation_model_1.Conversation({
                 users: [senderId, recipientId],
                 messages: [{ senderId: senderId, content }],
             });
@@ -42,7 +42,7 @@ router.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 router.get("/user/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = req.params.id;
-        const conversations = yield conversation_1.Conversation.find({
+        const conversations = yield conversation_model_1.Conversation.find({
             users: { $in: [userId] },
         })
             .populate({
@@ -71,7 +71,7 @@ router.get("/user/:id", (req, res) => __awaiter(void 0, void 0, void 0, function
 router.get("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const conversationId = req.params.id;
-        const conversation = yield conversation_1.Conversation.findById(conversationId).populate({
+        const conversation = yield conversation_model_1.Conversation.findById(conversationId).populate({
             path: "users",
             select: "name image bio",
         });
@@ -91,7 +91,7 @@ router.put("/:id/seen", (req, res) => __awaiter(void 0, void 0, void 0, function
     try {
         const conversationId = req.params.id;
         const { currUserId } = req.body;
-        const conversation = yield conversation_1.Conversation.findById(conversationId);
+        const conversation = yield conversation_model_1.Conversation.findById(conversationId);
         if (!conversation) {
             return res.status(404).json({ error: "Conversation not found" });
         }
@@ -115,7 +115,7 @@ router.put("/:id/seen", (req, res) => __awaiter(void 0, void 0, void 0, function
 router.get("/:id/unread", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const conversationId = req.params.id;
-        const conversation = yield conversation_1.Conversation.findById(conversationId);
+        const conversation = yield conversation_model_1.Conversation.findById(conversationId);
         if (!conversation) {
             return res.status(404).json({ error: "Conversation not found" });
         }
@@ -141,7 +141,7 @@ router.get("/unreadCount/user/:id", (req, res) => __awaiter(void 0, void 0, void
     var _a;
     try {
         const userId = req.params.id;
-        const conversations = yield conversation_1.Conversation.find({
+        const conversations = yield conversation_model_1.Conversation.find({
             users: { $in: [userId] },
         });
         let unreadCount = 0;
@@ -169,9 +169,9 @@ router.post("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     try {
         const { senderId, content } = req.body;
         const conversationId = req.params.id;
-        const userData = yield user_1.User.findById(senderId);
+        const userData = yield user_model_1.User.findById(senderId);
         // Find the conversation by ID
-        const conversation = yield conversation_1.Conversation.findById(conversationId);
+        const conversation = yield conversation_model_1.Conversation.findById(conversationId);
         if (!conversation) {
             return res.status(404).json({ error: "Conversation not found" });
         }
@@ -185,7 +185,7 @@ router.post("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         // Add the message to the conversation's messages array
         conversation.messages.push(newMessage);
         yield conversation.save();
-        const updatedConversation = yield conversation_1.Conversation.findById(conversationId).populate({
+        const updatedConversation = yield conversation_model_1.Conversation.findById(conversationId).populate({
             path: "users",
             select: "name image bio",
         });
@@ -204,23 +204,23 @@ router.post("/create/new", (req, res) => __awaiter(void 0, void 0, void 0, funct
     try {
         const { senderId, recipientId, content } = req.body;
         // check if sender exists
-        const sender = yield user_1.User.findById(senderId);
+        const sender = yield user_model_1.User.findById(senderId);
         if (!sender) {
             return res.status(404).json({ error: "Sender not found" });
         }
         // check if recipient exists
-        const recipient = yield user_1.User.findById(recipientId);
+        const recipient = yield user_model_1.User.findById(recipientId);
         if (!recipient) {
             return res.status(404).json({ error: "Recipient not found" });
         }
         // check if a conversation already exists with these two users
-        let conversation = yield conversation_1.Conversation.findOne({
+        let conversation = yield conversation_model_1.Conversation.findOne({
             users: { $all: [senderId, recipientId] },
         });
         if (conversation) {
             conversation.messages.push({ senderId: senderId, content: content, createdAt: new Date(), seen: false });
             yield conversation.save();
-            const updatedConversation = yield conversation_1.Conversation.findById(conversation._id).populate({
+            const updatedConversation = yield conversation_model_1.Conversation.findById(conversation._id).populate({
                 path: "users",
                 select: "name image bio",
             });
@@ -228,7 +228,7 @@ router.post("/create/new", (req, res) => __awaiter(void 0, void 0, void 0, funct
             return res.status(200).json(recentMsg);
         }
         // create a new conversation
-        const newConversation = new conversation_1.Conversation({
+        const newConversation = new conversation_model_1.Conversation({
             users: [senderId, recipientId],
             messages: [{ senderId: senderId, content, createdAt: new Date(), seen: false }],
         });
@@ -238,7 +238,7 @@ router.post("/create/new", (req, res) => __awaiter(void 0, void 0, void 0, funct
         (_c = recipient === null || recipient === void 0 ? void 0 : recipient.conversations) === null || _c === void 0 ? void 0 : _c.push(savedConversation === null || savedConversation === void 0 ? void 0 : savedConversation._id);
         yield sender.save();
         yield recipient.save();
-        const updatedConversation = yield conversation_1.Conversation.findById(savedConversation._id).populate({
+        const updatedConversation = yield conversation_model_1.Conversation.findById(savedConversation._id).populate({
             path: "users",
             select: "name image bio",
         });

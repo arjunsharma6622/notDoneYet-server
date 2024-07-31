@@ -1,6 +1,6 @@
 import express from "express";
-import { Product } from "../models/product";
-import { User } from "../models/user";
+import { Product } from "../models/product.model";
+import { User } from "../models/user.model";
 const router = express.Router();
 
 // get all the products

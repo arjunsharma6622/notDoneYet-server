@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express"
-import { User } from "../models/user";
+import { User } from "../models/user.model";
 import { compare, hash } from "bcryptjs";
 import { createJWTToken } from "../utils/utils";
 const router = express.Router()
@@ -48,14 +48,13 @@ router.post("/login", async (req: Request, res: Response) => {
         if(!email || !password){
             return res.status(400).json({error: "Missing required fields"})
         }
-        const user = await User.findOne({email}).select("+password")
-        // here add {password : 1} as by default the password is not returned
+        const user = await User.findOne({email})
 
         if(!user){
             return res.status(400).json({error: "User not found"})
         }
 
-        const isPasswordCorrect = await compare(password, user?.password as string)
+        const isPasswordCorrect = await user.isPasswordCorrect(password)
         if(!isPasswordCorrect){
             return res.status(400).json({error: "Invalid credentials"})
         }

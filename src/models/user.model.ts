@@ -1,5 +1,7 @@
 import mongoose, { Document } from "mongoose";
 import { Education, Experience, UserDocument } from "../types/user";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs"
 
 
 
@@ -94,5 +96,29 @@ const userSchema = new mongoose.Schema<UserDocument>({
   products: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
   savedPosts : [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }]
 });
+
+// isPasswordCorrect
+userSchema.methods.isPasswordCorrect = async function (password: string){
+  return bcrypt.compare(password, this.password)
+}
+
+// generateAccessToken
+userSchema.methods.generateAccessToken = function () {
+  return jwt.sign(
+    { _id : this._id, email : this.email, userName : this.userName },
+    process.env.ACCESS_TOKEN_SECRET as string,
+    { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
+  )
+}
+
+// generateRefreshToken
+userSchema.methods.generateRefreshToken = function () {
+  return jwt.sign(
+    { _id : this._id },
+    process.env.REFRESH_TOKEN_SECRET as string,
+    { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
+  )
+}
+
 
 export const User = mongoose.model<UserDocument>("User", userSchema);

@@ -1,15 +1,15 @@
 import cors, { CorsOptions } from "cors";
 import dotenv from "dotenv";
 import express from "express";
-import { User } from "./models/user";
-import { Venue } from "./models/venue";
-import authRoutes from "./routes/auth";
-import conversationRoutes from "./routes/conversation";
-import imageRoutes from "./routes/images";
-import postRoutes from "./routes/posts";
-import productRoutes from "./routes/product";
-import userRoutes from "./routes/user";
-import venueRoutes from "./routes/venue";
+import { User } from "./models/user.model";
+import { Venue } from "./models/venue.model";
+import authRoutes from "./routes/auth.routes";
+import conversationRoutes from "./routes/conversation.routes";
+import imageRoutes from "./routes/images.routes";
+import postRoutes from "./routes/posts.routes";
+import productRoutes from "./routes/product.routes";
+import userRoutes from "./routes/user.routes";
+import venueRoutes from "./routes/venue.routes";
 
 import { checkNameAvailability, connectDB } from "./utils/utils";
 

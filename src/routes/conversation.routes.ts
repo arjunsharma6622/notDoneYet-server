@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
-import { Conversation } from "../models/conversation";
-import { User } from "../models/user";
+import { Conversation } from "../models/conversation.model";
+import { User } from "../models/user.model";
 import { ObjectId } from "mongoose";
 
 const router = express.Router();

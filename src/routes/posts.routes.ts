@@ -1,6 +1,6 @@
 import express, {Request, Response} from "express";
-import { Post } from "../models/post";
-import { User } from "../models/user";
+import { Post } from "../models/post.model";
+import { User } from "../models/user.model";
 const router = express.Router();
 
 // get all posts

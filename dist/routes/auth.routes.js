@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const user_1 = require("../models/user");
+const user_model_1 = require("../models/user.model");
 const bcryptjs_1 = require("bcryptjs");
 const utils_1 = require("../utils/utils");
 const router = express_1.default.Router();
@@ -25,18 +25,18 @@ router.post("/signup", (req, res) => __awaiter(void 0, void 0, void 0, function*
             return res.status(400).json({ error: "Missing required fields" });
         }
         // check if userName is already taken
-        const isUserNameTaken = yield user_1.User.findOne({ userName });
+        const isUserNameTaken = yield user_model_1.User.findOne({ userName });
         if (isUserNameTaken) {
             return res.status(400).json({ error: "User name already taken" });
         }
         // check if user already exists
-        const isUserExists = yield user_1.User.findOne({ email });
+        const isUserExists = yield user_model_1.User.findOne({ email });
         if (isUserExists) {
             return res.status(400).json({ error: "User already exists" });
         }
         // if user dosent exists, create new user
         const hashedPassword = yield (0, bcryptjs_1.hash)(password, 10);
-        const newUser = new user_1.User({ name, userName, email, password: hashedPassword });
+        const newUser = new user_model_1.User({ name, userName, email, password: hashedPassword });
         yield newUser.save();
         res.status(200).json({ message: "User created successfully" });
     }
@@ -53,12 +53,11 @@ router.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* 
         if (!email || !password) {
             return res.status(400).json({ error: "Missing required fields" });
         }
-        const user = yield user_1.User.findOne({ email }).select("+password");
-        // here add {password : 1} as by default the password is not returned
+        const user = yield user_model_1.User.findOne({ email });
         if (!user) {
             return res.status(400).json({ error: "User not found" });
         }
-        const isPasswordCorrect = yield (0, bcryptjs_1.compare)(password, user === null || user === void 0 ? void 0 : user.password);
+        const isPasswordCorrect = yield user.isPasswordCorrect(password);
         if (!isPasswordCorrect) {
             return res.status(400).json({ error: "Invalid credentials" });
         }
@@ -89,7 +88,7 @@ router.post("/updatePassowrd", (req, res) => __awaiter(void 0, void 0, void 0, f
         if (!email || !newPassword || !oldPassword) {
             return res.status(400).json({ error: "Missing required fields" });
         }
-        const user = yield user_1.User.findOne({ email }).select("+password");
+        const user = yield user_model_1.User.findOne({ email }).select("+password");
         // here add {password : 1} as by default the password is not returned
         if (!user) {
             return res.status(400).json({ error: "User not found" });

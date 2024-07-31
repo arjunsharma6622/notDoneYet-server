@@ -13,13 +13,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const post_1 = require("../models/post");
-const user_1 = require("../models/user");
+const post_model_1 = require("../models/post.model");
+const user_model_1 = require("../models/user.model");
 const router = express_1.default.Router();
 // get all posts
 router.get("/", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const posts = yield post_1.Post.find();
+        const posts = yield post_model_1.Post.find();
         res.status(200).json(posts);
     }
     catch (err) {
@@ -31,7 +31,7 @@ router.get("/", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
 router.get("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const postId = req.params.id;
-        const post = yield post_1.Post.findById(postId)
+        const post = yield post_model_1.Post.findById(postId)
             .populate({
             path: "user",
             select: "name image bio followers following role userName",
@@ -78,15 +78,15 @@ router.get("/getPosts/user", (req, res) => __awaiter(void 0, void 0, void 0, fun
         }
         let user;
         if (userId) {
-            user = yield user_1.User.findById(userId);
+            user = yield user_model_1.User.findById(userId);
         }
         else if (userName) {
-            user = yield user_1.User.findOne({ userName: userName });
+            user = yield user_model_1.User.findOne({ userName: userName });
         }
         if (!user) {
             return res.status(404).json({ error: "User not found" });
         }
-        const posts = yield post_1.Post.find({ user: user._id })
+        const posts = yield post_model_1.Post.find({ user: user._id })
             .populate({ path: "user", select: "name image bio role followers userName" })
             .populate({
             path: "comments",
@@ -109,7 +109,7 @@ router.get("/recommended/:id", (req, res) => __awaiter(void 0, void 0, void 0, f
     const limit = parseInt(req.query.limit) || 10;
     try {
         // Find the user and populate their following list with only the posts field
-        const user = yield user_1.User.findById(userId)
+        const user = yield user_model_1.User.findById(userId)
             .populate({
             path: "following",
             select: "posts",
@@ -121,7 +121,7 @@ router.get("/recommended/:id", (req, res) => __awaiter(void 0, void 0, void 0, f
         // Get the posts from the users that the current user is following
         const followingUserPosts = ((_a = user === null || user === void 0 ? void 0 : user.following) === null || _a === void 0 ? void 0 : _a.flatMap((f) => f.posts)) || [];
         // Find the recommended posts from the users that the current user is following
-        const recommendedPosts = yield post_1.Post.find({
+        const recommendedPosts = yield post_model_1.Post.find({
             _id: { $in: followingUserPosts },
         })
             .populate({
@@ -139,7 +139,7 @@ router.get("/recommended/:id", (req, res) => __awaiter(void 0, void 0, void 0, f
             .sort({ createdAt: -1 })
             .lean();
         // Find the remaining posts not in followingUserPosts
-        const remainingPosts = yield post_1.Post.find({
+        const remainingPosts = yield post_model_1.Post.find({
             _id: { $nin: [...followingUserPosts] },
             user: { $ne: userId }
         })
@@ -177,7 +177,7 @@ router.get("/recommended/:id", (req, res) => __awaiter(void 0, void 0, void 0, f
 router.delete("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const postId = req.params.id;
-        const post = yield post_1.Post.findByIdAndDelete(postId);
+        const post = yield post_model_1.Post.findByIdAndDelete(postId);
         res.status(200).json(post);
     }
     catch (err) {
