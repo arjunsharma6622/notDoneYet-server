@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { Amenity, Review, SocialLink, Sport, Venue as VenueType } from "../types/venue";
+import { Amenity, Review, SocialLink, Sport, Venue as VenueType } from "../types/venue.types";
 
 const ReviewSchema = new Schema<Review>({
   user: { type: Schema.Types.ObjectId, ref: "User" },

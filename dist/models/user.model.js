@@ -95,7 +95,8 @@ const userSchema = new mongoose_1.default.Schema({
         { type: mongoose_1.default.Schema.Types.ObjectId, ref: "Conversation" },
     ],
     products: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: "Product" }],
-    savedPosts: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: "Post" }]
+    savedPosts: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: "Post" }],
+    refreshToken: { type: String }
 });
 // isPasswordCorrect
 userSchema.methods.isPasswordCorrect = function (password) {

@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createJWTToken = exports.checkNameAvailability = exports.deleteImageFromCloudinary = exports.connectDB = exports.BASE_URL = void 0;
+exports.createJWTToken = exports.checkNameAvailability = exports.deleteImageFromCloudinary = exports.cookieOptions = exports.connectDB = exports.BASE_URL = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const cloudinary_1 = require("cloudinary");
 const dotenv_1 = __importDefault(require("dotenv"));
@@ -36,6 +36,11 @@ const connectDB = () => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.connectDB = connectDB;
+exports.cookieOptions = {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none"
+};
 const deleteImageFromCloudinary = (_a) => __awaiter(void 0, [_a], void 0, function* ({ secureUrl }) {
     cloudinary_1.v2.config({
         cloud_name: process.env.CLOUDINARY_CLOUD_NAME,

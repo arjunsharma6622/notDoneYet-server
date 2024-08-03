@@ -1,8 +1,7 @@
 import mongoose, { Document } from "mongoose";
-import { Education, Experience, UserDocument } from "../types/user";
+import { Education, Experience, UserDocument } from "../types/user.types";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs"
-
 
 
 const experienceSchema = new mongoose.Schema<Experience>(
@@ -94,7 +93,8 @@ const userSchema = new mongoose.Schema<UserDocument>({
     { type: mongoose.Schema.Types.ObjectId, ref: "Conversation" },
   ],
   products: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
-  savedPosts : [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }]
+  savedPosts : [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
+  refreshToken : { type : String }
 });
 
 // isPasswordCorrect

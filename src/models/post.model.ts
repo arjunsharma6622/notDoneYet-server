@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { Comment as CommentType, PostDocument } from "../types/post";
+import { Comment as CommentType, PostDocument } from "../types/post.types";
 
 const commentSchema = new Schema<CommentType>(
   {

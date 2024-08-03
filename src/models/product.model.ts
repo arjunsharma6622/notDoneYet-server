@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { productDocument } from "../types/product";
+import { productDocument } from "../types/product.types";
 
 // define the schema for the product
 const productSchema = new mongoose.Schema<productDocument>({

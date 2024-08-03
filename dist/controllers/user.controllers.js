@@ -10,8 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.toggleFollowUser = exports.toggleSavePost = exports.updateUserById = exports.getRecommendedUsers = exports.getUserProfileDetails = exports.getUserFollowing = exports.getUserByIdOrUserName = exports.getAllUsers = void 0;
-const user_model_1 = require("../models/user.model");
 const conversation_model_1 = require("../models/conversation.model");
+const user_model_1 = require("../models/user.model");
 const getAllUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { roles } = req.query;
@@ -197,27 +197,3 @@ const toggleFollowUser = (req, res) => __awaiter(void 0, void 0, void 0, functio
     }
 });
 exports.toggleFollowUser = toggleFollowUser;
-// get user following
-// router.get("/following/:id", async (req: Request, res: Response) => {
-//   try {
-//     const userId = req.params.id;
-//     const user = await User.findById(userId).populate("following");
-//     if (!user) {
-//       return res.status(404).json({ error: "User not found" });
-//     }
-//     const userFollowings = user.following;
-//     userFollowings?.map((following: any) => {
-//       const followingConversations = following.conversations;
-//       const userConversations = user.conversations;
-//       // Find the common conversationId
-//       const commonConversationId = followingConversations.find((conversationId: any) =>
-//         userConversations?.includes(conversationId)
-//       );
-//       return {...following._doc, conversationId : commonConversationId}
-//     })
-//     res.status(200).json(userFollowings);
-//   } catch (err) {
-//     console.error(`Error fetching users: ${err}`);
-//     res.status(500).json({ error: "Internal Server Error" });
-//   }
-// });

@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
-import { User } from "../models/user.model";
 import { Conversation } from "../models/conversation.model";
+import { User } from "../models/user.model";
+
 
 export const getAllUsers = async (req: Request, res: Response) => {
     try {
@@ -186,31 +187,3 @@ export const toggleFollowUser = async (req: Request, res: Response) => {
         res.status(500).json({ error: "Internal Server Error" });
     }
 }
-
-
-
-// get user following
-// router.get("/following/:id", async (req: Request, res: Response) => {
-//   try {
-//     const userId = req.params.id;
-//     const user = await User.findById(userId).populate("following");
-//     if (!user) {
-//       return res.status(404).json({ error: "User not found" });
-//     }
-//     const userFollowings = user.following;
-//     userFollowings?.map((following: any) => {
-//       const followingConversations = following.conversations;
-//       const userConversations = user.conversations;
-//       // Find the common conversationId
-//       const commonConversationId = followingConversations.find((conversationId: any) =>
-//         userConversations?.includes(conversationId)
-//       );
-
-//       return {...following._doc, conversationId : commonConversationId}
-//     })
-//     res.status(200).json(userFollowings);
-//   } catch (err) {
-//     console.error(`Error fetching users: ${err}`);
-//     res.status(500).json({ error: "Internal Server Error" });
-//   }
-// });

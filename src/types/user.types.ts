@@ -65,6 +65,7 @@ export interface UserDocument extends Document {
   conversations?: Schema.Types.ObjectId[];
   products: Schema.Types.ObjectId[];
   savedPosts : Schema.Types.ObjectId[];
+  refreshToken : string;
   isPasswordCorrect(password: string): Promise<boolean>;
   generateAccessToken(): string;
   generateRefreshToken() : string;
