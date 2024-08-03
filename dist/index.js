@@ -24,6 +24,7 @@ const posts_routes_1 = __importDefault(require("./routes/posts.routes"));
 const product_routes_1 = __importDefault(require("./routes/product.routes"));
 const user_routes_1 = __importDefault(require("./routes/user.routes"));
 const venue_routes_1 = __importDefault(require("./routes/venue.routes"));
+const cookieParser = require("cookie-parser");
 const utils_1 = require("./utils/utils");
 const app = (0, express_1.default)();
 const corsOptions = {
@@ -33,6 +34,7 @@ const corsOptions = {
 };
 app.use((0, cors_1.default)(corsOptions));
 app.use(express_1.default.json());
+app.use(cookieParser());
 dotenv_1.default.config();
 //set up session
 // app.use(session({
@@ -83,6 +85,20 @@ dotenv_1.default.config();
 // }))
 const PORT = process.env.PORT || 8000;
 (0, utils_1.connectDB)();
+// testing of the cookies part
+app.get("/api/set-cookie/secure", (req, res) => {
+    console.log(req.cookies);
+    res.cookie("secureCookie", "1234", { httpOnly: true, secure: true, sameSite: "none" });
+    res.send({ message: "Secure cookie set", cookies: req.cookies });
+});
+app.get("/set-cookie/insecure", (req, res) => {
+    console.log(req.cookies);
+    res.cookie("notSecure", "xxyzzz", { httpOnly: false, sameSite: "none", secure: true });
+    res.send({ message: "Insecure cookie set", cookies: req.cookies });
+});
+app.get("/test-cookie", (req, res) => {
+    console.log(req.cookies);
+});
 app.use("/api/user", user_routes_1.default);
 app.use("/api/posts", posts_routes_1.default);
 app.use("/api/venue", venue_routes_1.default);

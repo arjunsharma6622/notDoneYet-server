@@ -10,6 +10,7 @@ import postRoutes from "./routes/posts.routes";
 import productRoutes from "./routes/product.routes";
 import userRoutes from "./routes/user.routes";
 import venueRoutes from "./routes/venue.routes";
+import cookieParser = require("cookie-parser");
 
 import { checkNameAvailability, connectDB } from "./utils/utils";
 
@@ -23,6 +24,7 @@ const corsOptions: CorsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use(cookieParser());
 dotenv.config();
 
 //set up session
@@ -79,6 +81,24 @@ dotenv.config();
 const PORT = process.env.PORT || 8000;
 
 connectDB();
+
+// testing of the cookies part
+app.get("/api/set-cookie/secure", (req, res) => {
+  console.log(req.cookies)
+  res.cookie("secureCookie", "1234", { httpOnly: true, secure: true, sameSite: "none" });
+  res.send({ message: "Secure cookie set", cookies: req.cookies });
+});
+
+app.get("/set-cookie/insecure", (req, res) => {
+  console.log(req.cookies)
+  res.cookie("notSecure", "xxyzzz", { httpOnly: false, sameSite: "none", secure: true });
+  res.send({ message: "Insecure cookie set", cookies: req.cookies });
+})
+
+
+app.get("/test-cookie", (req, res) => {
+  console.log(req.cookies)
+})
 
 app.use("/api/user", userRoutes);
 app.use("/api/posts", postRoutes);
