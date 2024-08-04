@@ -23,15 +23,12 @@ const utils_1 = require("../utils/utils");
 const generateAccessAndRefreshTokens = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const user = yield user_model_1.User.findById(userId);
-        console.log(user);
         if (!user)
             throw new ApiError_1.ApiError(404, "User not found");
         const accessToken = user === null || user === void 0 ? void 0 : user.generateAccessToken();
         const refreshToken = user === null || user === void 0 ? void 0 : user.generateRefreshToken();
-        console.log(accessToken, refreshToken);
         user.refreshToken = refreshToken;
         yield user.save();
-        console.log("Saved user ref token", user);
         return { accessToken, refreshToken };
     }
     catch (err) {
