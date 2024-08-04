@@ -11,16 +11,24 @@ const generateAccessAndRefreshTokens = async (userId: string) => {
     try {
         const user = await User.findById(userId)
 
+        console.log(user)
+
         if (!user) throw new ApiError(404, "User not found")
 
         const accessToken = user?.generateAccessToken();
         const refreshToken = user?.generateRefreshToken();
+
+        console.log(accessToken, refreshToken)
+
         user.refreshToken = refreshToken
         await user.save()
+
+        console.log("Saved user ref token", user)
 
         return { accessToken, refreshToken }
     }
     catch (err: any) {
+        console.log(err)
         throw new ApiError(500, "Something went wrong, while generating refresh annd access tokens");
     }
 }
