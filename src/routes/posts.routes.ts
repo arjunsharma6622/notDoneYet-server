@@ -6,6 +6,7 @@ import {
   getPostsByUser,
   getRecommendedPosts
 } from "../controllers/posts.controllers";
+import { verifyJWT } from "../middleware/auth.middleware";
 
 const router = express.Router();
 
@@ -19,7 +20,7 @@ router.get("/:id", getPostById);
 router.get("/getPosts/user", getPostsByUser);
 
 //get user recommended posts
-router.get("/recommended/:id", getRecommendedPosts);
+router.get("/user/recommendedPosts", verifyJWT, getRecommendedPosts);
 
 // delete post
 router.delete("/:id", deletePost);

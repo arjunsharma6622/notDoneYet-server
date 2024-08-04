@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deletePost = exports.getRecommendedPosts = exports.getPostsByUser = exports.getPostById = exports.getAllPosts = void 0;
+exports.getRecommendedPosts = exports.deletePost = exports.getPostsByUser = exports.getPostById = exports.getAllPosts = void 0;
 const post_model_1 = require("../models/post.model");
 const user_model_1 = require("../models/user.model");
 const getAllPosts = (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -80,9 +80,22 @@ const getPostsByUser = (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
 });
 exports.getPostsByUser = getPostsByUser;
+const deletePost = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const postId = req.params.id;
+        const post = yield post_model_1.Post.findByIdAndDelete(postId);
+        res.status(200).json(post);
+    }
+    catch (err) {
+        console.error(`Error deleting post: ${err}`);
+        res.status(500).json({ message: err });
+    }
+});
+exports.deletePost = deletePost;
+/* --- SECURE CONTROLLERS --- */
 const getRecommendedPosts = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
-    const userId = req.params.id;
+    var _a, _b;
+    const userId = (_a = req === null || req === void 0 ? void 0 : req.user) === null || _a === void 0 ? void 0 : _a._id;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     try {
@@ -97,7 +110,7 @@ const getRecommendedPosts = (req, res) => __awaiter(void 0, void 0, void 0, func
             return res.status(404).json({ error: "User not found" });
         }
         // Get the posts from the users that the current user is following
-        const followingUserPosts = ((_a = user === null || user === void 0 ? void 0 : user.following) === null || _a === void 0 ? void 0 : _a.flatMap((f) => f.posts)) || [];
+        const followingUserPosts = ((_b = user === null || user === void 0 ? void 0 : user.following) === null || _b === void 0 ? void 0 : _b.flatMap((f) => f.posts)) || [];
         // Find the recommended posts from the users that the current user is following
         const recommendedPosts = yield post_model_1.Post.find({
             _id: { $in: followingUserPosts },
@@ -152,15 +165,3 @@ const getRecommendedPosts = (req, res) => __awaiter(void 0, void 0, void 0, func
     }
 });
 exports.getRecommendedPosts = getRecommendedPosts;
-const deletePost = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const postId = req.params.id;
-        const post = yield post_model_1.Post.findByIdAndDelete(postId);
-        res.status(200).json(post);
-    }
-    catch (err) {
-        console.error(`Error deleting post: ${err}`);
-        res.status(500).json({ message: err });
-    }
-});
-exports.deletePost = deletePost;

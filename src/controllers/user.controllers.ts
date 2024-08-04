@@ -1,6 +1,9 @@
 import { Request, Response } from "express";
 import { Conversation } from "../models/conversation.model";
 import { User } from "../models/user.model";
+import { asyncHandler } from "../utils/asyncHandler";
+import { ApiResponse } from "../utils/ApiResponse";
+import { ApiError } from "../utils/ApiError";
 
 
 export const getAllUsers = async (req: Request, res: Response) => {
@@ -42,32 +45,6 @@ export const getUserByIdOrUserName = async (req: Request, res: Response) => {
     }
 }
 
-export const getUserFollowing = async (req: Request, res: Response) => {
-    try {
-        const userId = req.params.id;
-        const user = await User.findById(userId).populate("following");
-        if (!user) {
-            return res.status(404).json({ error: "User not found" });
-        }
-
-        const userConversations = user.conversations;
-
-        const updatedUserFollowings = user?.following?.map((following: any) => {
-            const followingConversations = following.conversations;
-            // Find the common conversationId
-            const commonConversationId = followingConversations.find((conversationId: any) =>
-                userConversations?.includes(conversationId)
-            );
-            return { ...following.toObject(), conversationId: commonConversationId };
-        });
-
-        res.status(200).json(updatedUserFollowings);
-    } catch (err) {
-        console.error(`Error fetching users: ${err}`);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-}
-
 export const getUserProfileDetails = async (req: Request, res: Response) => {
     try {
         let { role, userName } = req.query;
@@ -81,25 +58,6 @@ export const getUserProfileDetails = async (req: Request, res: Response) => {
             return res.status(404).json({ error: "User not found" });
         }
         res.status(200).json(user);
-    } catch (err) {
-        console.error(`Error fetching users: ${err}`);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-}
-
-export const getRecommendedUsers = async (req: Request, res: Response) => {
-    try {
-        const userId = req.params.id;
-        const user = await User.findById(userId).populate("following");
-        if (!user) {
-            return res.status(404).json({ error: "User not found" });
-        }
-        const userFollowings: any = user.following;
-        userFollowings.push(userId);
-        const recommendedUsers = await User.find({
-            _id: { $nin: userFollowings }, role: { $nin: ["admin", "venue"] }
-        });
-        res.status(200).json(recommendedUsers);
     } catch (err) {
         console.error(`Error fetching users: ${err}`);
         res.status(500).json({ error: "Internal Server Error" });
@@ -146,44 +104,118 @@ export const toggleSavePost = async (req: Request, res: Response) => {
     }
 }
 
-export const toggleFollowUser = async (req: Request, res: Response) => {
-    try {
-        const { currentUserId, selectedUserId } = req.body;
-        const currentUser: any = await User.findById(currentUserId);
-        const selectedUser: any = await User.findById(selectedUserId);
-        if (!currentUser || !selectedUser) {
-            return res.status(404).json({ error: "User not found" });
-        }
-        // check if current user is following the selected user
-        if (currentUser.following.includes(selectedUserId)) {
-            // unfollow
-            currentUser.following.pull(selectedUserId);
-            selectedUser.followers.pull(currentUserId);
-        } else {
-            // follow
-            currentUser.following.push(selectedUserId);
-            selectedUser.followers.push(currentUserId);
-        }
+/* --- SECURE CONTROLLERS --- */
 
-        // first check if a conversation exists between the two users
-        let checkConversation = await Conversation.findOne({ users: { $all: [currentUserId, selectedUserId] } });
+export const getAuthenticatedUser = asyncHandler(async (req: any, res: Response) => {
+    const user = await User.findById(req.user._id).select("-password -refreshToken");
 
-        let convoId = checkConversation ? checkConversation._id : null;
+    if (!user) throw new ApiError(404, "User not found")
 
-        if (!checkConversation) {
-            // create a conversation of the two users and push that conversation id into the users conversations array
-            const conversation = new Conversation({ users: [currentUserId, selectedUserId] });
-            await conversation.save();
-            convoId = conversation._id;
-            currentUser.conversations.push(conversation._id);
-            selectedUser.conversations.push(conversation._id);
-        }
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                { user },
+                "User fetched successfully"
+            )
+        )
+})
 
-        await currentUser.save();
-        await selectedUser.save();
-        res.status(200).json({ message: "Success", conversationId: convoId });
-    } catch (err) {
-        console.error(`Error updating user: ${err}`);
-        res.status(500).json({ error: "Internal Server Error" });
+export const getUserFollowing = asyncHandler(async (req: any, res: Response) => {
+    const userId = req.user._id;
+    const user = await User.findById(userId).populate("following");
+
+    if (!user) throw new ApiError(404, "User not found")
+
+    const userConversations = user.conversations;
+
+    const updatedUserFollowings = user?.following?.map((following: any) => {
+        const followingConversations = following.conversations;
+        // Find the common conversationId
+        const commonConversationId = followingConversations.find((conversationId: any) =>
+            userConversations?.includes(conversationId)
+        );
+        return { ...following.toObject(), conversationId: commonConversationId };
+    });
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                { userFollowings: updatedUserFollowings },
+                "User followings fetched successfully"
+            )
+        )
+
+})
+
+export const toggleFollowUser = asyncHandler(async (req: any, res: Response) => {
+    const { selectedUserId } = req.body;
+    const currentUserId = req.user._id;
+    const currentUser: any = await User.findById(currentUserId);
+    const selectedUser: any = await User.findById(selectedUserId);
+    if (!currentUser || !selectedUser) throw new ApiError(404, "User not found");
+
+    // check if current user is following the selected user
+    if (currentUser.following.includes(selectedUserId)) {
+        // unfollow
+        currentUser.following.pull(selectedUserId);
+        selectedUser.followers.pull(currentUserId);
+    } else {
+        // follow
+        currentUser.following.push(selectedUserId);
+        selectedUser.followers.push(currentUserId);
     }
-}
+
+    // first check if a conversation exists between the two users
+    let checkConversation = await Conversation.findOne({ users: { $all: [currentUserId, selectedUserId] } });
+
+    let convoId = checkConversation ? checkConversation._id : null;
+
+    if (!checkConversation) {
+        // create a conversation of the two users and push that conversation id into the users conversations array
+        const conversation = new Conversation({ users: [currentUserId, selectedUserId] });
+        await conversation.save();
+        convoId = conversation._id;
+        currentUser.conversations.push(conversation._id);
+        selectedUser.conversations.push(conversation._id);
+    }
+
+    await currentUser.save();
+    await selectedUser.save();
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                { conversationId : convoId },
+                "User follow status toggled successfully"
+            )
+        )
+})
+
+export const getRecommendedUsers = asyncHandler(async (req: any, res: Response) => {
+        const userId = req.user._id;
+        const user = await User.findById(userId).populate("following");
+        if (!user) throw new ApiError(404, "User not found");
+
+        const userFollowings: any = user.following;
+        userFollowings.push(userId);
+
+        const recommendedUsers = await User.find({
+            _id: { $nin: userFollowings }, role: { $nin: ["admin", "venue"] }
+        });
+
+        return res
+            .status(200)
+            .json(
+                new ApiResponse(
+                    200,
+                    { recommendedUsers },
+                    "Recommended users fetched successfully"
+                )
+            )
+})

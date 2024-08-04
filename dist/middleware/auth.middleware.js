@@ -22,6 +22,7 @@ exports.verifyJWT = (0, asyncHandler_1.asyncHandler)((req, res, next) => __await
     try {
         // either access token can come from the cookie (for browsers) or from Authorization header (for example for the mobile apps)
         const token = ((_a = req.cookies) === null || _a === void 0 ? void 0 : _a.accessToken) || ((_b = req.header('Authorization')) === null || _b === void 0 ? void 0 : _b.replace('Bearer ', ''));
+        // console.log(req.cookies)
         if (!token) {
             throw new ApiError_1.ApiError(401, 'Unauthorized');
         }

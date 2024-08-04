@@ -1,6 +1,9 @@
 import { Request, Response } from "express";
 import { Conversation } from "../models/conversation.model";
 import { User } from "../models/user.model";
+import { asyncHandler } from "../utils/asyncHandler";
+import { ApiResponse } from "../utils/ApiResponse";
+import { ApiError } from "../utils/ApiError";
 
 export const createConversation = async (req: Request, res: Response) => {
     try {
@@ -91,59 +94,114 @@ export const createNewConversation = async (req: Request, res: Response) => {
 
 }
 
-export const getUserConversation = async (req: Request, res: Response) => {
-    try {
-        const userId = req.params.id;
-        const conversations = await Conversation.find({
-            users: { $in: [userId] },
-        })
-            .populate({
-                path: "users",
-                select: "name image bio",
-            })
-            .exec();
+/* --- SECURE CONTROLLERS --- */
 
-        // if there are no messages then return empty array
-        if (conversations.length == 1) {
-            return res.status(200).json(conversations);
-        }
+// get conversation by ID
+export const getConversationById = asyncHandler(async (req: any, res: Response) => {
+    const userId = req.user._id;
+    const conversationId = req.params.id;
+    const conversation = await Conversation.findOne({
+        $and: [
+            { _id: conversationId },
+            { users: { $in: [userId] } }
+        ]
+    }).populate({
+        path: "users",
+        select: "name image bio",
+    });
 
-        // sort all the conversations by latest message timestamp
-        conversations.sort((a: any, b: any) => {
-            const aLastMsgTime = a.messages.length > 0 ? new Date(a.messages[a.messages.length - 1].createdAt).getTime() : new Date(a.createdAt).getTime();
-            const bLastMsgTime = b.messages.length > 0 ? new Date(b.messages[b.messages.length - 1].createdAt).getTime() : new Date(b.createdAt).getTime();
-            return bLastMsgTime - aLastMsgTime;
-        });
+    if (!conversation) throw new ApiError(404, "Conversation not found");
 
-        res.status(200).json(conversations);
-    } catch (err) {
-        console.error(`Error fetching conversations: ${err}`);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-}
+    return res
+        .status(200)
+        .json(new ApiResponse(
+            200,
+            conversation,
+            "Conversation fetched successfully"
+        ));
+})
 
-export const getConversationById = async (req: Request, res: Response) => {
-    try {
-        const conversationId = req.params.id;
-        const conversation = await Conversation.findById(conversationId).populate({
+// get all conversations of a user
+export const getUserConversation = asyncHandler(async (req: any, res: Response) => {
+    const userId = req.user._id;
+    const conversations = await Conversation.find({
+        users: { $in: [userId] },
+    })
+        .populate({
             path: "users",
             select: "name image bio",
-        });
-        if (!conversation) {
-            return res.status(404).json({ error: "Conversation not found" });
-        }
-        res.status(200).json(conversation);
-    } catch (err) {
-        console.error(`Error fetching conversations: ${err}`);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-}
+        })
+        .exec();
 
-export const updateMessageSeen = async (req: Request, res: Response) => {
+    // if there are no messages then return empty array
+    if (conversations.length == 1)
+        return res
+            .status(200)
+            .json(new ApiResponse(200, conversations, "Conversations fetched successfully"))
+
+    // sort all the conversations by latest message timestamp
+    conversations.sort((a: any, b: any) => {
+        const aLastMsgTime = a.messages.length > 0 ? new Date(a.messages[a.messages.length - 1].createdAt).getTime() : new Date(a.createdAt).getTime();
+        const bLastMsgTime = b.messages.length > 0 ? new Date(b.messages[b.messages.length - 1].createdAt).getTime() : new Date(b.createdAt).getTime();
+        return bLastMsgTime - aLastMsgTime;
+    });
+
+    return res
+        .status(200)
+        .json(new ApiResponse(
+            200,
+            conversations,
+            "Conversations fetched successfully"
+        ))
+})
+
+// add message to a conversation
+export const addMessageToConversation = asyncHandler(async (req: any, res: Response) => {
+    const senderId = req.user._id;
+    const { content } = req.body;
+    const conversationId = req.params.id;
+
+    // Find the conversation by ID
+    const conversation = await Conversation.findById(conversationId);
+
+    if (!conversation) throw new ApiError(404, "Conversation not found");
+
+    // Create a new message object
+    const newMessage = {
+        senderId: senderId,
+        content: content,
+        createdAt: new Date(),
+        seen: false,
+    };
+
+    // Add the message to the conversation's messages array
+    conversation.messages.push(newMessage);
+    await conversation.save();
+
+    const updatedConversation: any = await Conversation.findById(
+        conversationId
+    ).populate({
+        path: "users",
+        select: "name image bio",
+    });
+
+    const recentMsg =
+        updatedConversation.messages[updatedConversation.messages.length - 1];
+
+    return res
+        .status(200)
+        .json(new ApiResponse(
+            200,
+            recentMsg,
+            "Message added to conversation successfully"
+        ));
+})
+
+// update the message seen
+export const updateMessageSeen = asyncHandler(async (req: any, res: Response) => {
     try {
         const conversationId = req.params.id;
-        const { currUserId } = req.body;
-
+        const currUserId = req.user._id;
         const conversation = await Conversation.findById(conversationId);
         if (!conversation) {
             return res.status(404).json({ error: "Conversation not found" });
@@ -165,100 +223,61 @@ export const updateMessageSeen = async (req: Request, res: Response) => {
         console.error(`Error fetching conversations: ${err}`);
         res.status(500).json({ error: "Internal Server Error" });
     }
-}
+})
 
-export const getUnreadMessagesCount = async (req: Request, res: Response) => {
-    try {
-        const conversationId = req.params.id;
-        const conversation = await Conversation.findById(conversationId);
-        if (!conversation) {
-            return res.status(404).json({ error: "Conversation not found" });
+// get total unread messages of a conversation
+export const getUnreadMessagesCount = asyncHandler(async (req: Request, res: Response) => {
+    const conversationId = req.params.id;
+    const conversation = await Conversation.findById(conversationId);
+    if (!conversation) throw new ApiError(404, "Conversation not found");
+
+    const unreadCount: any = { _id: "", count: 0 };
+
+    for (let i = conversation.messages.length - 1; i >= 0; i--) {
+        if (conversation.messages[i].seen == true) {
+            break;
         }
 
-        const unreadCount: any = { _id: "", count: 0 };
+        if (conversation.messages[i].senderId != conversation.users[0]) {
+            unreadCount._id = conversation.messages[i].senderId;
+            unreadCount.count = unreadCount.count + 1;
+        }
+    }
+    return res
+        .status(200)
+        .json(new ApiResponse(
+            200,
+            unreadCount,
+            "Unread messages count fetched successfully"
+        ));
+})
 
-        for (let i = conversation.messages.length - 1; i >= 0; i--) {
-            if (conversation.messages[i].seen == true) {
+// get total unread messages of user
+export const getUnreadMessagesCountOfUser = asyncHandler(async (req: any, res: Response) => {
+    const userId = req?.user?._id;
+    const conversations = await Conversation.find({
+        users: { $in: [userId] },
+    });
+    let unreadCount = 0;
+
+    for (let i = 0; i < conversations.length; i++) {
+        let currConversationUnreadCount = 0;
+        for (let j = conversations[i].messages.length - 1; j >= 0; j--) {
+            if (conversations[i].messages[j].seen == true) {
                 break;
             }
 
-            if (conversation.messages[i].senderId != conversation.users[0]) {
-                unreadCount._id = conversation.messages[i].senderId;
-                unreadCount.count = unreadCount.count + 1;
+            if (conversations[i].messages[j].senderId?.toString() != userId) {
+                currConversationUnreadCount = currConversationUnreadCount + 1;
             }
         }
-        return res.status(200).json(unreadCount);
-    } catch (err) {
-        console.error(`Error fetching conversations: ${err}`);
-        res.status(500).json({ error: "Internal Server Error" });
+        unreadCount += currConversationUnreadCount;
     }
-}
-
-export const getUnreadMessagesCountOfUser = async (req: Request, res: Response) => {
-    try {
-        const userId = req.params.id;
-        const conversations = await Conversation.find({
-            users: { $in: [userId] },
-        });
-        let unreadCount = 0;
-
-        for (let i = 0; i < conversations.length; i++) {
-            let currConversationUnreadCount = 0;
-            for (let j = conversations[i].messages.length - 1; j >= 0; j--) {
-                if (conversations[i].messages[j].seen == true) {
-                    break;
-                }
-
-                if (conversations[i].messages[j].senderId?.toString() != userId) {
-                    currConversationUnreadCount = currConversationUnreadCount + 1;
-                }
-            }
-            unreadCount += currConversationUnreadCount;
-        }
-
-        return res.status(200).json({ unreadCount });
-    } catch (err) {
-        console.error(`Error fetching conversations: ${err}`);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-}
-
-export const addMessageToConversation = async (req: Request, res: Response) => {
-    try {
-        const { senderId, content } = req.body;
-        const conversationId = req.params.id;
-        const userData = await User.findById(senderId);
-        // Find the conversation by ID
-        const conversation = await Conversation.findById(conversationId);
-        if (!conversation) {
-            return res.status(404).json({ error: "Conversation not found" });
-        }
-
-        // Create a new message object
-        const newMessage = {
-            senderId: senderId,
-            content: content,
-            createdAt: new Date(),
-            seen: false,
-        };
-
-        // Add the message to the conversation's messages array
-        conversation.messages.push(newMessage);
-        await conversation.save();
-
-        const updatedConversation: any = await Conversation.findById(
-            conversationId
-        ).populate({
-            path: "users",
-            select: "name image bio",
-        });
-
-        const recentMsg =
-            updatedConversation.messages[updatedConversation.messages.length - 1];
-
-        return res.status(200).json(recentMsg);
-    } catch (err) {
-        console.error(`Error fetching conversations: ${err}`);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-}
+    return res
+    .status(200)
+    .json(new ApiResponse(
+        200, 
+        {unreadCount}, 
+        "Unread messages count fetched successfully"
+    ));
+})

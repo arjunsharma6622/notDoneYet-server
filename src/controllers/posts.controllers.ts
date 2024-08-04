@@ -72,8 +72,23 @@ export const getPostsByUser = async (req: Request, res: Response) => {
     }
 }
 
-export const getRecommendedPosts = async (req: Request, res: Response) => {
-    const userId = req.params.id;
+
+export const deletePost = async (req: Request, res: Response) => {
+    try {
+        const postId = req.params.id;
+        const post = await Post.findByIdAndDelete(postId);
+        res.status(200).json(post);
+    } catch (err) {
+        console.error(`Error deleting post: ${err}`);
+        res.status(500).json({ message: err });
+    }
+}
+
+/* --- SECURE CONTROLLERS --- */
+
+
+export const getRecommendedPosts = async (req: any, res: Response) => {
+    const userId = req?.user?._id;
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
 
@@ -149,17 +164,5 @@ export const getRecommendedPosts = async (req: Request, res: Response) => {
     } catch (err) {
         console.error(`Error fetching posts: ${err}`);
         res.status(500).json({ error: "Internal Server Error" });
-    }
-}
-
-
-export const deletePost = async (req: Request, res: Response) => {
-    try {
-        const postId = req.params.id;
-        const post = await Post.findByIdAndDelete(postId);
-        res.status(200).json(post);
-    } catch (err) {
-        console.error(`Error deleting post: ${err}`);
-        res.status(500).json({ message: err });
     }
 }

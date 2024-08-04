@@ -9,9 +9,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.toggleFollowUser = exports.toggleSavePost = exports.updateUserById = exports.getRecommendedUsers = exports.getUserProfileDetails = exports.getUserFollowing = exports.getUserByIdOrUserName = exports.getAllUsers = void 0;
+exports.getRecommendedUsers = exports.toggleFollowUser = exports.getUserFollowing = exports.getAuthenticatedUser = exports.toggleSavePost = exports.updateUserById = exports.getUserProfileDetails = exports.getUserByIdOrUserName = exports.getAllUsers = void 0;
 const conversation_model_1 = require("../models/conversation.model");
 const user_model_1 = require("../models/user.model");
+const asyncHandler_1 = require("../utils/asyncHandler");
+const ApiResponse_1 = require("../utils/ApiResponse");
+const ApiError_1 = require("../utils/ApiError");
 const getAllUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { roles } = req.query;
@@ -53,29 +56,6 @@ const getUserByIdOrUserName = (req, res) => __awaiter(void 0, void 0, void 0, fu
     }
 });
 exports.getUserByIdOrUserName = getUserByIdOrUserName;
-const getUserFollowing = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
-    try {
-        const userId = req.params.id;
-        const user = yield user_model_1.User.findById(userId).populate("following");
-        if (!user) {
-            return res.status(404).json({ error: "User not found" });
-        }
-        const userConversations = user.conversations;
-        const updatedUserFollowings = (_a = user === null || user === void 0 ? void 0 : user.following) === null || _a === void 0 ? void 0 : _a.map((following) => {
-            const followingConversations = following.conversations;
-            // Find the common conversationId
-            const commonConversationId = followingConversations.find((conversationId) => userConversations === null || userConversations === void 0 ? void 0 : userConversations.includes(conversationId));
-            return Object.assign(Object.assign({}, following.toObject()), { conversationId: commonConversationId });
-        });
-        res.status(200).json(updatedUserFollowings);
-    }
-    catch (err) {
-        console.error(`Error fetching users: ${err}`);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-});
-exports.getUserFollowing = getUserFollowing;
 const getUserProfileDetails = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let { role, userName } = req.query;
@@ -94,26 +74,6 @@ const getUserProfileDetails = (req, res) => __awaiter(void 0, void 0, void 0, fu
     }
 });
 exports.getUserProfileDetails = getUserProfileDetails;
-const getRecommendedUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const userId = req.params.id;
-        const user = yield user_model_1.User.findById(userId).populate("following");
-        if (!user) {
-            return res.status(404).json({ error: "User not found" });
-        }
-        const userFollowings = user.following;
-        userFollowings.push(userId);
-        const recommendedUsers = yield user_model_1.User.find({
-            _id: { $nin: userFollowings }, role: { $nin: ["admin", "venue"] }
-        });
-        res.status(200).json(recommendedUsers);
-    }
-    catch (err) {
-        console.error(`Error fetching users: ${err}`);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-});
-exports.getRecommendedUsers = getRecommendedUsers;
 const updateUserById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = req.params.id;
@@ -157,43 +117,78 @@ const toggleSavePost = (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
 });
 exports.toggleSavePost = toggleSavePost;
-const toggleFollowUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { currentUserId, selectedUserId } = req.body;
-        const currentUser = yield user_model_1.User.findById(currentUserId);
-        const selectedUser = yield user_model_1.User.findById(selectedUserId);
-        if (!currentUser || !selectedUser) {
-            return res.status(404).json({ error: "User not found" });
-        }
-        // check if current user is following the selected user
-        if (currentUser.following.includes(selectedUserId)) {
-            // unfollow
-            currentUser.following.pull(selectedUserId);
-            selectedUser.followers.pull(currentUserId);
-        }
-        else {
-            // follow
-            currentUser.following.push(selectedUserId);
-            selectedUser.followers.push(currentUserId);
-        }
-        // first check if a conversation exists between the two users
-        let checkConversation = yield conversation_model_1.Conversation.findOne({ users: { $all: [currentUserId, selectedUserId] } });
-        let convoId = checkConversation ? checkConversation._id : null;
-        if (!checkConversation) {
-            // create a conversation of the two users and push that conversation id into the users conversations array
-            const conversation = new conversation_model_1.Conversation({ users: [currentUserId, selectedUserId] });
-            yield conversation.save();
-            convoId = conversation._id;
-            currentUser.conversations.push(conversation._id);
-            selectedUser.conversations.push(conversation._id);
-        }
-        yield currentUser.save();
-        yield selectedUser.save();
-        res.status(200).json({ message: "Success", conversationId: convoId });
+/* --- SECURE CONTROLLERS --- */
+exports.getAuthenticatedUser = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield user_model_1.User.findById(req.user._id).select("-password -refreshToken");
+    if (!user)
+        throw new ApiError_1.ApiError(404, "User not found");
+    return res
+        .status(200)
+        .json(new ApiResponse_1.ApiResponse(200, { user }, "User fetched successfully"));
+}));
+exports.getUserFollowing = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    const userId = req.user._id;
+    const user = yield user_model_1.User.findById(userId).populate("following");
+    if (!user)
+        throw new ApiError_1.ApiError(404, "User not found");
+    const userConversations = user.conversations;
+    const updatedUserFollowings = (_a = user === null || user === void 0 ? void 0 : user.following) === null || _a === void 0 ? void 0 : _a.map((following) => {
+        const followingConversations = following.conversations;
+        // Find the common conversationId
+        const commonConversationId = followingConversations.find((conversationId) => userConversations === null || userConversations === void 0 ? void 0 : userConversations.includes(conversationId));
+        return Object.assign(Object.assign({}, following.toObject()), { conversationId: commonConversationId });
+    });
+    return res
+        .status(200)
+        .json(new ApiResponse_1.ApiResponse(200, { userFollowings: updatedUserFollowings }, "User followings fetched successfully"));
+}));
+exports.toggleFollowUser = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { selectedUserId } = req.body;
+    const currentUserId = req.user._id;
+    const currentUser = yield user_model_1.User.findById(currentUserId);
+    const selectedUser = yield user_model_1.User.findById(selectedUserId);
+    if (!currentUser || !selectedUser)
+        throw new ApiError_1.ApiError(404, "User not found");
+    // check if current user is following the selected user
+    if (currentUser.following.includes(selectedUserId)) {
+        // unfollow
+        currentUser.following.pull(selectedUserId);
+        selectedUser.followers.pull(currentUserId);
     }
-    catch (err) {
-        console.error(`Error updating user: ${err}`);
-        res.status(500).json({ error: "Internal Server Error" });
+    else {
+        // follow
+        currentUser.following.push(selectedUserId);
+        selectedUser.followers.push(currentUserId);
     }
-});
-exports.toggleFollowUser = toggleFollowUser;
+    // first check if a conversation exists between the two users
+    let checkConversation = yield conversation_model_1.Conversation.findOne({ users: { $all: [currentUserId, selectedUserId] } });
+    let convoId = checkConversation ? checkConversation._id : null;
+    if (!checkConversation) {
+        // create a conversation of the two users and push that conversation id into the users conversations array
+        const conversation = new conversation_model_1.Conversation({ users: [currentUserId, selectedUserId] });
+        yield conversation.save();
+        convoId = conversation._id;
+        currentUser.conversations.push(conversation._id);
+        selectedUser.conversations.push(conversation._id);
+    }
+    yield currentUser.save();
+    yield selectedUser.save();
+    return res
+        .status(200)
+        .json(new ApiResponse_1.ApiResponse(200, { conversationId: convoId }, "User follow status toggled successfully"));
+}));
+exports.getRecommendedUsers = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = req.user._id;
+    const user = yield user_model_1.User.findById(userId).populate("following");
+    if (!user)
+        throw new ApiError_1.ApiError(404, "User not found");
+    const userFollowings = user.following;
+    userFollowings.push(userId);
+    const recommendedUsers = yield user_model_1.User.find({
+        _id: { $nin: userFollowings }, role: { $nin: ["admin", "venue"] }
+    });
+    return res
+        .status(200)
+        .json(new ApiResponse_1.ApiResponse(200, { recommendedUsers }, "Recommended users fetched successfully"));
+}));
