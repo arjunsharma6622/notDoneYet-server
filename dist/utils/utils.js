@@ -39,7 +39,7 @@ exports.connectDB = connectDB;
 exports.cookieOptions = {
     httpOnly: true,
     secure: true,
-    sameSite: "none"
+    sameSite: "lax"
 };
 const deleteImageFromCloudinary = (_a) => __awaiter(void 0, [_a], void 0, function* ({ secureUrl }) {
     cloudinary_1.v2.config({
