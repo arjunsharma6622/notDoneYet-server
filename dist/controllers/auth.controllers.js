@@ -90,8 +90,8 @@ exports.login = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0,
     };
     return res
         .status(200)
-        .cookie("accessToken", accessToken, Object.assign(Object.assign({}, utils_1.cookieOptions), { expires: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000) }))
-        .cookie("refreshToken", refreshToken, Object.assign(Object.assign({}, utils_1.cookieOptions), { expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) }))
+        .cookie("accessToken", accessToken, Object.assign(Object.assign({}, utils_1.cookieOptions), { expires: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000), maxAge: 15 * 24 * 60 * 60 * 1000 }))
+        .cookie("refreshToken", refreshToken, Object.assign(Object.assign({}, utils_1.cookieOptions), { expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), maxAge: 30 * 24 * 60 * 60 * 1000 }))
         .json(new ApiResponse_1.ApiResponse(200, { user: userToSend, accessToken, refreshToken }, "User logged In Successfully"));
 }));
 exports.logoutUser = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -139,7 +139,7 @@ exports.refreshAccessToken = (0, asyncHandler_1.asyncHandler)((req, res) => __aw
     const { accessToken, refreshToken: newRefreshToken } = yield generateAccessAndRefreshTokens(user._id.toString());
     return res
         .status(200)
-        .cookie("accessToken", accessToken, Object.assign(Object.assign({}, utils_1.cookieOptions), { expires: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000) }))
-        .cookie("refreshToken", newRefreshToken, Object.assign(Object.assign({}, utils_1.cookieOptions), { expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) }))
+        .cookie("accessToken", accessToken, Object.assign({}, utils_1.cookieOptions))
+        .cookie("refreshToken", newRefreshToken, Object.assign({}, utils_1.cookieOptions))
         .json(new ApiResponse_1.ApiResponse(200, { accessToken, refreshToken: newRefreshToken }, "Access token refreshed"));
 }));

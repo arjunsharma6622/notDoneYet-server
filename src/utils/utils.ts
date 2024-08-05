@@ -4,11 +4,6 @@ import dotenv from "dotenv";
 dotenv.config();
 import jwt from "jsonwebtoken";
 
-export const BASE_URL =
-  process.env.NODE_ENV === "development"
-    ? "http://localhost:8000"
-    : "https://notdoneyet-server.vercel.app";
-
 export const connectDB = async (): Promise<void> => {
   try {
     const mongoURL = process.env.MONGO_URL;

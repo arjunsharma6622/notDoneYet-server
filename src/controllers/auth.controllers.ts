@@ -96,8 +96,8 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 
     return res
         .status(200)
-        .cookie("accessToken", accessToken, { ...cookieOptions, expires: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000) },)
-        .cookie("refreshToken", refreshToken, { ...cookieOptions, expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) },)
+        .cookie("accessToken", accessToken, { ...cookieOptions, expires: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000), maxAge: 15 * 24 * 60 * 60 * 1000 })
+        .cookie("refreshToken", refreshToken, { ...cookieOptions, expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), maxAge: 30 * 24 * 60 * 60 * 1000 },)
         .json(new ApiResponse(200, { user: userToSend, accessToken, refreshToken }, "User logged In Successfully"))
 })
 
@@ -169,8 +169,8 @@ export const refreshAccessToken = asyncHandler(async (req: any, res: Response) =
 
     return res
         .status(200)
-        .cookie("accessToken", accessToken, { ...cookieOptions, expires: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000) },)
-        .cookie("refreshToken", newRefreshToken, { ...cookieOptions, expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) },)
+        .cookie("accessToken", accessToken, { ...cookieOptions},)
+        .cookie("refreshToken", newRefreshToken, { ...cookieOptions },)
         .json(
             new ApiResponse(
                 200,
