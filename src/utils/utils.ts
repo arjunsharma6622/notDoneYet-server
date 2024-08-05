@@ -26,7 +26,7 @@ export const connectDB = async (): Promise<void> => {
 export const cookieOptions: { httpOnly: boolean; secure: boolean; sameSite: "none" | "lax" | "strict" } = {
   httpOnly: true,
   secure: true,
-  sameSite: "lax"
+  sameSite: "strict"
 };
 
 export const deleteImageFromCloudinary = async ({ secureUrl }: { secureUrl: string }) => {
