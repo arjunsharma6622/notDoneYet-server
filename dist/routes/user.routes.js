@@ -13,8 +13,6 @@ router.get("/", user_controllers_1.getAllUsers);
 router.get("/getUser", user_controllers_1.getUserByIdOrUserName);
 // get user Details using the userName and userRole from query
 router.get("/profile/details", user_controllers_1.getUserProfileDetails);
-// update user by userId
-router.patch("/:id");
 // save post to user's saved posts
 router.post("/post/toggleSavePost", user_controllers_1.toggleSavePost);
 /* --- SECURED ROUTES --- */
@@ -24,6 +22,10 @@ router.get('/authenticatedUser', auth_middleware_1.verifyJWT, user_controllers_1
 router.get("/following", auth_middleware_1.verifyJWT, user_controllers_1.getUserFollowing);
 // toggle follow user
 router.post("/toggleFollow", auth_middleware_1.verifyJWT, user_controllers_1.toggleFollowUser);
+// toggle profile like
+router.post("/toggleProfileLike", auth_middleware_1.verifyJWT, user_controllers_1.toggleProfileLike);
 // get recommended users
 router.get("/recommended", auth_middleware_1.verifyJWT, user_controllers_1.getRecommendedUsers);
+// update user by userId
+router.patch("/", auth_middleware_1.verifyJWT, user_controllers_1.updateUser);
 exports.default = router;

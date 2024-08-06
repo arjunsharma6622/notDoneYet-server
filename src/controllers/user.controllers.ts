@@ -64,21 +64,6 @@ export const getUserProfileDetails = async (req: Request, res: Response) => {
     }
 }
 
-export const updateUserById = async (req: Request, res: Response) => {
-    try {
-        const userId = req.params.id;
-        const updates = req.body;
-        const user = await User.findByIdAndUpdate(userId, updates, { new: true });
-        if (!user) {
-            return res.status(404).json({ error: "User not found" });
-        }
-        res.status(200).json(user);
-    } catch (err) {
-        console.error(`Error updating user: ${err}`);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-}
-
 export const toggleSavePost = async (req: Request, res: Response) => {
     try {
         const { userId, postId } = req.body;
@@ -191,31 +176,78 @@ export const toggleFollowUser = asyncHandler(async (req: any, res: Response) => 
         .json(
             new ApiResponse(
                 200,
-                { conversationId : convoId },
+                { conversationId: convoId },
                 "User follow status toggled successfully"
             )
         )
 })
 
+export const toggleProfileLike = asyncHandler(async (req: any, res: Response) => {
+    const { profileId } = req.body;
+    const userId = req.user._id;
+    // Fetch the profile and user from the database
+    const profile: any = await User.findById(profileId);
+    if (!profile) throw new ApiError(404, "Profile not found");
+
+    const user: any = await User.findById(userId);
+    if (!user) throw new ApiError(404, "User not found");
+
+    let messageToSend = "";
+
+    // Check if the profile is already liked by the user
+    const isLiked = user.likedProfiles.includes(profileId);
+
+    if (isLiked) {
+        // If already liked, then unlike
+        user.likedProfiles = user.likedProfiles.filter((id: string) => id !== profileId);
+        profile.profileLikes = profile.profileLikes.filter((id: string) => id !== userId);
+
+        messageToSend = "Profile unliked";
+    } else {
+        // If not liked, then like
+        user.likedProfiles.push(profileId);
+        profile.profileLikes.push(userId);
+
+        messageToSend = "Profile liked";
+    }
+
+    // Save the changes to the user and profile
+    await user.save();
+    await profile.save();
+
+    // Return a success response
+    return res.status(200).json(new ApiResponse(200, {}, messageToSend));
+});
+
 export const getRecommendedUsers = asyncHandler(async (req: any, res: Response) => {
-        const userId = req.user._id;
-        const user = await User.findById(userId).populate("following");
-        if (!user) throw new ApiError(404, "User not found");
+    const userId = req.user._id;
+    const user = await User.findById(userId).populate("following");
+    if (!user) throw new ApiError(404, "User not found");
 
-        const userFollowings: any = user.following;
-        userFollowings.push(userId);
+    const userFollowings: any = user.following;
+    userFollowings.push(userId);
 
-        const recommendedUsers = await User.find({
-            _id: { $nin: userFollowings }, role: { $nin: ["admin", "venue"] }
-        });
+    const recommendedUsers = await User.find({
+        _id: { $nin: userFollowings }, role: { $nin: ["admin", "venue"] }
+    });
 
-        return res
-            .status(200)
-            .json(
-                new ApiResponse(
-                    200,
-                    { recommendedUsers },
-                    "Recommended users fetched successfully"
-                )
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                { recommendedUsers },
+                "Recommended users fetched successfully"
             )
+        )
+})
+
+export const updateUser = asyncHandler(async (req: any, res: Response) => {
+    const userId = req.user._id;
+    const updates = req.body;
+    const user = await User.findByIdAndUpdate(userId, updates, { new: true });
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+    res.status(200).json(new ApiResponse(200, { user }, "User updated successfully"));
 })

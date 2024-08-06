@@ -15,6 +15,12 @@ router.get("/:id", posts_controllers_1.getPostById);
 router.get("/getPosts/user", posts_controllers_1.getPostsByUser);
 //get user recommended posts
 router.get("/user/recommendedPosts", auth_middleware_1.verifyJWT, posts_controllers_1.getRecommendedPosts);
+// create a post
+router.route("/").post(auth_middleware_1.verifyJWT, posts_controllers_1.createPost);
+// toggle post like
+router.route("/togglePostLike").post(auth_middleware_1.verifyJWT, posts_controllers_1.togglePostLike);
+// create a post
+router.route("/addComment").post(auth_middleware_1.verifyJWT, posts_controllers_1.addComment);
 // delete post
-router.delete("/:id", posts_controllers_1.deletePost);
+router.delete("/:id", auth_middleware_1.verifyJWT, posts_controllers_1.deletePost);
 exports.default = router;

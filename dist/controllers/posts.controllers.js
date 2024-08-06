@@ -9,9 +9,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getRecommendedPosts = exports.deletePost = exports.getPostsByUser = exports.getPostById = exports.getAllPosts = void 0;
+exports.addComment = exports.togglePostLike = exports.createPost = exports.getRecommendedPosts = exports.deletePost = exports.getPostsByUser = exports.getPostById = exports.getAllPosts = void 0;
 const post_model_1 = require("../models/post.model");
 const user_model_1 = require("../models/user.model");
+const asyncHandler_1 = require("../utils/asyncHandler");
+const ApiResponse_1 = require("../utils/ApiResponse");
+const ApiError_1 = require("../utils/ApiError");
 const getAllPosts = (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const posts = yield post_model_1.Post.find();
@@ -165,3 +168,65 @@ const getRecommendedPosts = (req, res) => __awaiter(void 0, void 0, void 0, func
     }
 });
 exports.getRecommendedPosts = getRecommendedPosts;
+exports.createPost = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = req.user._id;
+    const { postData } = req.body;
+    const newPost = new post_model_1.Post(Object.assign({ user: userId }, postData));
+    yield newPost.save();
+    res.status(201).json(new ApiResponse_1.ApiResponse(201, newPost, "Post created successfully"));
+}));
+exports.togglePostLike = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    let message = "";
+    const { postId } = req.body;
+    const userId = req.user._id;
+    const post = yield post_model_1.Post.findById(postId);
+    if (!post)
+        throw new ApiError_1.ApiError(404, "Post not found");
+    const user = yield user_model_1.User.findById(userId);
+    if (!user)
+        throw new ApiError_1.ApiError(404, "User not found");
+    if (post.likes.includes(userId)) {
+        post.likes = post.likes.filter((like) => like != userId);
+        message = "Post unliked";
+    }
+    else {
+        post.likes.push(userId);
+        message = "Post liked";
+    }
+    yield post.save();
+    res.status(200).json(new ApiResponse_1.ApiResponse(200, message));
+}));
+exports.addComment = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = req.user._id;
+    const { postId, parentCommentId, commentText } = req.body;
+    const user = yield user_model_1.User.findById(userId);
+    if (!user) {
+        throw new ApiError_1.ApiError(404, "User not found");
+    }
+    const post = yield post_model_1.Post.findById(postId);
+    if (!post) {
+        throw new ApiError_1.ApiError(404, "Post not found");
+    }
+    const parentComment = parentCommentId
+        ? yield post_model_1.Comment.findById(parentCommentId)
+        : null;
+    if (parentComment && parentComment.parentComment) {
+        throw new ApiError_1.ApiError(400, "Nesting beyond one level is not allowed");
+    }
+    // create a new comment
+    const newComment = new post_model_1.Comment({
+        user: userId,
+        post: postId,
+        parentComment: parentCommentId || null,
+        commentText
+    });
+    // Add the new comment to the post's comments array
+    post.comments.push(newComment._id);
+    yield post.save();
+    // If the new comment is a reply, add it to the parent comment's replies array
+    if (parentComment) {
+        parentComment.replies.push(newComment._id);
+        yield parentComment.save();
+    }
+    return res.status(201).json(new ApiResponse_1.ApiResponse(201, newComment, "Comment added successfully"));
+}));

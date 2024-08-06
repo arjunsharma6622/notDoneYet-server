@@ -7,7 +7,9 @@ import {
   getUserFollowing,
   getUserProfileDetails,
   toggleFollowUser,
-  toggleSavePost
+  toggleProfileLike,
+  toggleSavePost,
+  updateUser
 } from "../controllers/user.controllers";
 import { verifyJWT } from "../middleware/auth.middleware";
 
@@ -21,9 +23,6 @@ router.get("/getUser", getUserByIdOrUserName);
 
 // get user Details using the userName and userRole from query
 router.get("/profile/details", getUserProfileDetails);
-
-// update user by userId
-router.patch("/:id",);
 
 // save post to user's saved posts
 router.post("/post/toggleSavePost", toggleSavePost);
@@ -39,7 +38,13 @@ router.get("/following", verifyJWT, getUserFollowing);
 // toggle follow user
 router.post("/toggleFollow", verifyJWT, toggleFollowUser);
 
+// toggle profile like
+router.post("/toggleProfileLike", verifyJWT, toggleProfileLike);
+
 // get recommended users
 router.get("/recommended", verifyJWT, getRecommendedUsers);
+
+// update user by userId
+router.patch("/",verifyJWT, updateUser);
 
 export default router;

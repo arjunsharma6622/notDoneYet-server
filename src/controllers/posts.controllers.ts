@@ -1,6 +1,9 @@
 import { Request, Response } from "express";
-import { Post } from "../models/post.model";
+import { Comment, Post } from "../models/post.model";
 import { User } from "../models/user.model";
+import { asyncHandler } from "../utils/asyncHandler";
+import { ApiResponse } from "../utils/ApiResponse";
+import { ApiError } from "../utils/ApiError";
 
 export const getAllPosts = async (_req: Request, res: Response) => {
     try {
@@ -166,3 +169,86 @@ export const getRecommendedPosts = async (req: any, res: Response) => {
         res.status(500).json({ error: "Internal Server Error" });
     }
 }
+
+export const createPost = asyncHandler(async (req: any, res: Response) => {
+    const userId = req.user._id;
+    const { postData } = req.body;
+    const newPost = new Post({
+        user: userId,
+        ...postData
+    })
+    await newPost.save();
+    res.status(201).json(new ApiResponse(201, newPost, "Post created successfully"))
+})
+
+export const togglePostLike = asyncHandler(async (req: any, res: Response) => {
+    let message = "";
+
+    const { postId } = req.body;
+    const userId = req.user._id;
+
+    const post : any = await Post.findById(postId);
+    if (!post)  throw new ApiError(404, "Post not found");
+
+    const user = await User.findById(userId);
+    if (!user) throw new ApiError(404, "User not found");
+
+    if (post.likes.includes(userId)) {
+        post.likes = post.likes.filter((like: any) => like != userId);
+        message = "Post unliked";
+        } else {
+        post.likes.push(userId);
+        message = "Post liked";
+    }
+
+    await post.save();
+    res.status(200).json(new ApiResponse(200, message))
+})
+
+export const addComment = asyncHandler(async (req: any, res: Response) => {
+    const userId = req.user._id;
+    const { postId, parentCommentId, commentText } = req.body;
+
+    const user : any = await User.findById(userId);
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    const post : any = await Post.findById(postId);
+    if (!post) {
+        throw new ApiError(404, "Post not found");
+    }
+
+    const parentComment : any = parentCommentId
+        ? await Comment.findById(parentCommentId)
+        : null;
+
+
+
+    if (parentComment && parentComment.parentComment) {
+        throw new ApiError(400, "Nesting beyond one level is not allowed");
+    }
+
+    // create a new comment
+    const newComment = new Comment({
+        user: userId,
+        post: postId,
+        parentComment: parentCommentId || null,
+        commentText
+    });
+
+
+
+    // Add the new comment to the post's comments array
+    post.comments.push(newComment._id);
+    await post.save();
+  
+      // If the new comment is a reply, add it to the parent comment's replies array
+      if (parentComment) {
+        parentComment.replies.push(newComment._id);
+        await parentComment.save();
+    }
+
+
+    return res.status(201).json(new ApiResponse(201, newComment, "Comment added successfully"))
+})
