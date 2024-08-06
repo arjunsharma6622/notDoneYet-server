@@ -38,18 +38,18 @@ app.use(cookieParser());
 dotenv_1.default.config();
 const PORT = process.env.PORT || 8000;
 (0, utils_1.connectDB)();
-app.use("/api/user", user_routes_1.default);
-app.use("/api/posts", posts_routes_1.default);
-app.use("/api/venue", venue_routes_1.default);
-app.use("/api/conversation", conversation_routes_1.default);
-app.use("/api/product", product_routes_1.default);
-app.use("/api/images", images_routes_1.default);
-app.use("/api/auth", auth_routes_1.default);
-app.get("/api/checkUserName", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.use("/auth", auth_routes_1.default);
+app.use("/user", user_routes_1.default);
+app.use("/posts", posts_routes_1.default);
+app.use("/venue", venue_routes_1.default);
+app.use("/conversation", conversation_routes_1.default);
+app.use("/product", product_routes_1.default);
+app.use("/images", images_routes_1.default);
+app.get("/checkUserName", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { userName } = req.query;
     yield (0, utils_1.checkNameAvailability)(user_model_1.User, 'userName', userName, res);
 }));
-app.get("/api/checkVenueName", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.get("/checkVenueName", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { uniqueName } = req.query;
     yield (0, utils_1.checkNameAvailability)(venue_model_1.Venue, 'uniqueName', uniqueName, res);
 }));

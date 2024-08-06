@@ -32,20 +32,20 @@ const PORT = process.env.PORT || 8000;
 
 connectDB();
 
-app.use("/api/user", userRoutes);
-app.use("/api/posts", postRoutes);
-app.use("/api/venue", venueRoutes);
-app.use("/api/conversation", conversationRoutes);
-app.use("/api/product", productRoutes);
-app.use("/api/images", imageRoutes);
-app.use("/api/auth", authRoutes)
+app.use("/auth", authRoutes)
+app.use("/user", userRoutes);
+app.use("/posts", postRoutes);
+app.use("/venue", venueRoutes);
+app.use("/conversation", conversationRoutes);
+app.use("/product", productRoutes);
+app.use("/images", imageRoutes);
 
-app.get("/api/checkUserName", async (req, res) => {
+app.get("/checkUserName", async (req, res) => {
   const { userName } = req.query;
   await checkNameAvailability(User, 'userName', userName as string, res);
 });
 
-app.get("/api/checkVenueName", async (req, res) => {
+app.get("/checkVenueName", async (req, res) => {
   const { uniqueName } = req.query;
   await checkNameAvailability(Venue, 'uniqueName', uniqueName as string, res);
 });
