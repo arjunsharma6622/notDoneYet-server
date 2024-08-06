@@ -4,7 +4,7 @@ import { ApiError } from "../utils/ApiError";
 import jwt from "jsonwebtoken"
 import { User } from "../models/user.model";
 
-export const verifyJWT = asyncHandler(async (req : Request, res : Response, next : NextFunction) => {
+export const verifyJWT = asyncHandler(async (req : any, res : Response, next : NextFunction) => {
     try{
         // either access token can come from the cookie (for browsers) or from Authorization header (for example for the mobile apps)
         

@@ -7,7 +7,6 @@ const express_1 = __importDefault(require("express"));
 const auth_controllers_1 = require("../controllers/auth.controllers");
 const auth_middleware_1 = require("../middleware/auth.middleware");
 const router = express_1.default.Router();
-// signup route
 router.post("/signup", auth_controllers_1.signUp);
 // login route, using the JWT tokens
 router.route("/login").post(auth_controllers_1.login);

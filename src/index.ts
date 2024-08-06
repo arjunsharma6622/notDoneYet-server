@@ -16,6 +16,7 @@ import { checkNameAvailability, connectDB } from "./utils/utils";
 
 const app = express();
 
+
 const corsOptions: CorsOptions = {
   origin: ["http://localhost:3000", "https://notdoneyet.in", "https://www.notdoneyet.in", "https://notdoneyet.vercel.app", "*"],
   credentials: true,

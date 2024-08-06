@@ -13,7 +13,6 @@ import { verifyJWT } from "../middleware/auth.middleware";
 
 const router = express.Router();
 
-
 // get all users
 router.get("/", getAllUsers);
 

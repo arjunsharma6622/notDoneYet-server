@@ -10,7 +10,6 @@ import { verifyJWT } from "../middleware/auth.middleware";
 
 const router = express.Router()
 
-// signup route
 router.post("/signup", signUp)
 
 // login route, using the JWT tokens
