@@ -89,6 +89,30 @@ export const deletePost = async (req: Request, res: Response) => {
 
 /* --- SECURE CONTROLLERS --- */
 
+export const getPostsOfAuthenticatedUser = asyncHandler(async (req: any, res: Response) => {
+        const userId = req.user._id;
+
+        if (!userId) {
+            return res.status(400).json({ error: "User ID or User Name not provided" });
+        }
+
+        const user = await User.findById(userId);
+
+        if (!user) {
+            throw new ApiError(404, "User not found");
+        }
+
+        const posts = await Post.find({ user: user._id })
+            .populate({ path: "user", select: "name image bio role followers userName" })
+            .populate({
+                path: "comments",
+                populate: { path: "user", select: "name image" },
+            })
+            .populate({ path: "likes", select: "name image" })
+            .sort({ createdAt: -1 });
+
+        return res.status(200).json(new ApiResponse(200, posts, "Posts fetched successfully"));
+})
 
 export const getRecommendedPosts = async (req: any, res: Response) => {
     const userId = req?.user?._id;
@@ -172,10 +196,12 @@ export const getRecommendedPosts = async (req: any, res: Response) => {
 
 export const createPost = asyncHandler(async (req: any, res: Response) => {
     const userId = req.user._id;
-    const { postData } = req.body;
+    const { description, images } = req.body;
+
     const newPost = new Post({
         user: userId,
-        ...postData
+        description,
+        images
     })
     await newPost.save();
     res.status(201).json(new ApiResponse(201, newPost, "Post created successfully"))

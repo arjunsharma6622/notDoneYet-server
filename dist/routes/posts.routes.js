@@ -13,8 +13,10 @@ router.get("/", posts_controllers_1.getAllPosts);
 router.get("/:id", posts_controllers_1.getPostById);
 // get posts of a user
 router.get("/getPosts/user", posts_controllers_1.getPostsByUser);
+// get posts of a user
+router.get("/getPosts/authenticated", auth_middleware_1.verifyJWT, posts_controllers_1.getPostsOfAuthenticatedUser);
 //get user recommended posts
-router.get("/user/recommendedPosts", auth_middleware_1.verifyJWT, posts_controllers_1.getRecommendedPosts);
+router.route("/user/recommendedPosts").get(auth_middleware_1.verifyJWT, posts_controllers_1.getRecommendedPosts);
 // create a post
 router.route("/").post(auth_middleware_1.verifyJWT, posts_controllers_1.createPost);
 // toggle post like

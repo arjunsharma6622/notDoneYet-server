@@ -87,7 +87,6 @@ const userSchema = new mongoose.Schema<UserDocument>({
   following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   experience: [experienceSchema],
   education: [educationSchema],
-  sports: [String],
   skills: [String],
   conversations: [
     { type: mongoose.Schema.Types.ObjectId, ref: "Conversation" },

@@ -25,6 +25,12 @@ router.post("/create/new", createNewConversation)
 // get conversation by conversationId
 router.get("/:id", verifyJWT, getConversationById);
 
+// get total unread messages in a conversation
+router.get("/:id/unread", verifyJWT, getUnreadMessagesCount);
+
+// get the all the unread messages count of all conversations of a given userId
+router.get("/unreadCount/user", verifyJWT, getUnreadMessagesCountOfUser)
+
 // get all user conversations using userId
 router.get("/user/getAllConversations", verifyJWT, getUserConversation);
 
@@ -33,11 +39,5 @@ router.post("/addMessage/:id", verifyJWT, addMessageToConversation);
 
 // update messages seen
 router.put("/:id/seen", verifyJWT, updateMessageSeen);
-
-// get total unread messages in a conversation
-router.get("/:id/unread", verifyJWT, getUnreadMessagesCount);
-
-// get the all the unread messages count of all conversations of a given userId
-router.get("/unreadCount/user", verifyJWT, getUnreadMessagesCountOfUser)
 
 export default router;

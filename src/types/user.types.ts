@@ -50,7 +50,6 @@ export interface UserDocument extends Document {
   following?: Schema.Types.ObjectId[];
   experience?: Experience[];
   education?: Education[];
-  sports?: string[];
   skills?: string[];
   address?: {
     street?: string;

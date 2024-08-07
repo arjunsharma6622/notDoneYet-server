@@ -6,21 +6,18 @@ import { ApiResponse } from "../utils/ApiResponse";
 import { ApiError } from "../utils/ApiError";
 
 
-export const getAllUsers = async (req: Request, res: Response) => {
-    try {
+export const getAllUsers = asyncHandler(async (req: Request, res: Response) => {
         const { roles } = req.query;
         if (roles) {
             const rolesArray = roles.toString().trim().split(',');
             const users = await User.find({ role: { $in: rolesArray } });
-            return res.status(200).json(users);
+            if (!users) throw new ApiError(404, "No users found");
+            return res.status(200).json(new ApiResponse(200, { users }, "Users fetched successfully"));        
         }
         const users = await User.find();
-        res.status(200).json(users);
-    } catch (err) {
-        console.error(`Error fetching users: ${err}`);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-}
+        if (!users) throw new ApiError(404, "No users found");
+        return res.status(200).json(new ApiResponse(200, { users }, "Users fetched successfully"));
+})
 
 export const getUserByIdOrUserName = async (req: Request, res: Response) => {
     try {

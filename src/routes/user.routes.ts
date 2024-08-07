@@ -29,6 +29,9 @@ router.post("/post/toggleSavePost", toggleSavePost);
 
 /* --- SECURED ROUTES --- */
 
+// get recommended users
+router.get("/recommended", verifyJWT, getRecommendedUsers);
+
 // get authenticated dashboard user details via the access token
 router.get('/authenticatedUser', verifyJWT, getAuthenticatedUser);
 
@@ -40,9 +43,6 @@ router.post("/toggleFollow", verifyJWT, toggleFollowUser);
 
 // toggle profile like
 router.post("/toggleProfileLike", verifyJWT, toggleProfileLike);
-
-// get recommended users
-router.get("/recommended", verifyJWT, getRecommendedUsers);
 
 // update user by userId
 router.patch("/",verifyJWT, updateUser);

@@ -15,23 +15,20 @@ const user_model_1 = require("../models/user.model");
 const asyncHandler_1 = require("../utils/asyncHandler");
 const ApiResponse_1 = require("../utils/ApiResponse");
 const ApiError_1 = require("../utils/ApiError");
-const getAllUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { roles } = req.query;
-        if (roles) {
-            const rolesArray = roles.toString().trim().split(',');
-            const users = yield user_model_1.User.find({ role: { $in: rolesArray } });
-            return res.status(200).json(users);
-        }
-        const users = yield user_model_1.User.find();
-        res.status(200).json(users);
+exports.getAllUsers = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { roles } = req.query;
+    if (roles) {
+        const rolesArray = roles.toString().trim().split(',');
+        const users = yield user_model_1.User.find({ role: { $in: rolesArray } });
+        if (!users)
+            throw new ApiError_1.ApiError(404, "No users found");
+        return res.status(200).json(new ApiResponse_1.ApiResponse(200, { users }, "Users fetched successfully"));
     }
-    catch (err) {
-        console.error(`Error fetching users: ${err}`);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-});
-exports.getAllUsers = getAllUsers;
+    const users = yield user_model_1.User.find();
+    if (!users)
+        throw new ApiError_1.ApiError(404, "No users found");
+    return res.status(200).json(new ApiResponse_1.ApiResponse(200, { users }, "Users fetched successfully"));
+}));
 const getUserByIdOrUserName = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { userId, userName } = req.query;

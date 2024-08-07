@@ -89,7 +89,6 @@ const userSchema = new mongoose_1.default.Schema({
     following: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: "User" }],
     experience: [experienceSchema],
     education: [educationSchema],
-    sports: [String],
     skills: [String],
     conversations: [
         { type: mongoose_1.default.Schema.Types.ObjectId, ref: "Conversation" },

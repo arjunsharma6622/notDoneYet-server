@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.addComment = exports.togglePostLike = exports.createPost = exports.getRecommendedPosts = exports.deletePost = exports.getPostsByUser = exports.getPostById = exports.getAllPosts = void 0;
+exports.addComment = exports.togglePostLike = exports.createPost = exports.getRecommendedPosts = exports.getPostsOfAuthenticatedUser = exports.deletePost = exports.getPostsByUser = exports.getPostById = exports.getAllPosts = void 0;
 const post_model_1 = require("../models/post.model");
 const user_model_1 = require("../models/user.model");
 const asyncHandler_1 = require("../utils/asyncHandler");
@@ -96,6 +96,25 @@ const deletePost = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 });
 exports.deletePost = deletePost;
 /* --- SECURE CONTROLLERS --- */
+exports.getPostsOfAuthenticatedUser = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = req.user._id;
+    if (!userId) {
+        return res.status(400).json({ error: "User ID or User Name not provided" });
+    }
+    const user = yield user_model_1.User.findById(userId);
+    if (!user) {
+        throw new ApiError_1.ApiError(404, "User not found");
+    }
+    const posts = yield post_model_1.Post.find({ user: user._id })
+        .populate({ path: "user", select: "name image bio role followers userName" })
+        .populate({
+        path: "comments",
+        populate: { path: "user", select: "name image" },
+    })
+        .populate({ path: "likes", select: "name image" })
+        .sort({ createdAt: -1 });
+    return res.status(200).json(new ApiResponse_1.ApiResponse(200, posts, "Posts fetched successfully"));
+}));
 const getRecommendedPosts = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     const userId = (_a = req === null || req === void 0 ? void 0 : req.user) === null || _a === void 0 ? void 0 : _a._id;
@@ -170,8 +189,12 @@ const getRecommendedPosts = (req, res) => __awaiter(void 0, void 0, void 0, func
 exports.getRecommendedPosts = getRecommendedPosts;
 exports.createPost = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.user._id;
-    const { postData } = req.body;
-    const newPost = new post_model_1.Post(Object.assign({ user: userId }, postData));
+    const { description, images } = req.body;
+    const newPost = new post_model_1.Post({
+        user: userId,
+        description,
+        images
+    });
     yield newPost.save();
     res.status(201).json(new ApiResponse_1.ApiResponse(201, newPost, "Post created successfully"));
 }));

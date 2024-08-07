@@ -6,6 +6,7 @@ import {
   getAllPosts,
   getPostById,
   getPostsByUser,
+  getPostsOfAuthenticatedUser,
   getRecommendedPosts,
   togglePostLike
 } from "../controllers/posts.controllers";
@@ -22,8 +23,11 @@ router.get("/:id", getPostById);
 // get posts of a user
 router.get("/getPosts/user", getPostsByUser);
 
+// get posts of a user
+router.get("/getPosts/authenticated", verifyJWT, getPostsOfAuthenticatedUser);
+
 //get user recommended posts
-router.get("/user/recommendedPosts", verifyJWT, getRecommendedPosts);
+router.route("/user/recommendedPosts").get(verifyJWT, getRecommendedPosts);
 
 // create a post
 router.route("/").post(verifyJWT, createPost);
