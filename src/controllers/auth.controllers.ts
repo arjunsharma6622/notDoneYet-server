@@ -27,6 +27,34 @@ const generateAccessAndRefreshTokens = async (userId: string) => {
     }
 }
 
+const generateAccessToken = async (userId: string) => {
+    try {
+        const user = await User.findById(userId)
+
+        if (!user) throw new ApiError(404, "User not found")
+
+        const accessToken = user?.generateAccessToken();
+
+        return accessToken
+    }
+    catch (err: any) {
+        console.log(err)
+        throw new ApiError(500, "Something went wrong, while generating access token");
+    }
+}
+
+export const checkAccessToken = asyncHandler(async (req: any, res: Response) => {
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                { accessToken: req?.user?.accessToken },
+                "Access token is valid"
+            )
+        )
+})
+
 export const signUp = asyncHandler(async (req: Request, res: Response) => {
     const { name, userName, email, password }: { name: string, userName: string, email: string, password: string } = req.body;
 
@@ -154,9 +182,18 @@ export const refreshAccessToken = asyncHandler(async (req: any, res: Response) =
 
     if (!incomingRefreshToken) throw new ApiError(401, "Unauthorized request")
 
+    // catch the decoded errors, either by using a try catch of using it's callback function
+    // i did it using the callback function because it's easier to use the throw new ApiError in the callback function
+
     const decodedToken: any = jwt.verify(
         incomingRefreshToken,
-        process.env.REFRESH_TOKEN_SECRET as string
+        process.env.REFRESH_TOKEN_SECRET as string,
+        (err: any, decoded: any) => {
+            if (err) {
+                throw new ApiError(401, "Invalid refresh token")
+            }
+            return decoded
+        }
     )
 
     const user = await User.findById(decodedToken?._id)
@@ -165,16 +202,18 @@ export const refreshAccessToken = asyncHandler(async (req: any, res: Response) =
 
     if (incomingRefreshToken !== user?.refreshToken) throw new ApiError(401, "Refresh token is expired or used")
 
-    const { accessToken, refreshToken: newRefreshToken } = await generateAccessAndRefreshTokens(user._id.toString())
+    // const { accessToken, refreshToken: newRefreshToken } = await generateAccessAndRefreshTokens(user._id.toString())
+    // here dont generate both access and refresh token becuase it will be a never ending loop of access and refresh token, you can generate both at the initial auth login, but when you need to refresh the access token you need to generate the refresh token only
+
+    const accessToken = await generateAccessToken(user._id.toString())
 
     return res
         .status(200)
-        .cookie("accessToken", accessToken, { ...cookieOptions},)
-        .cookie("refreshToken", newRefreshToken, { ...cookieOptions },)
+        .cookie("accessToken", accessToken, { ...cookieOptions },)
         .json(
             new ApiResponse(
                 200,
-                { accessToken, refreshToken: newRefreshToken },
+                { accessToken },
                 "Access token refreshed"
             )
         )

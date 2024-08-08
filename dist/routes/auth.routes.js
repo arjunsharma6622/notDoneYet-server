@@ -14,7 +14,9 @@ router.route("/login").post(auth_controllers_1.login);
 //  update password
 router.post("/updatePassowrd", auth_controllers_1.updatePassword);
 // logout user
-router.route("/logout").post(auth_middleware_1.verifyJWT, auth_controllers_1.logoutUser);
+router.route("/logout").post(auth_controllers_1.logoutUser);
 // refresh access token
-router.route("/refreshToken").post(auth_controllers_1.refreshAccessToken);
+router.route("/refreshAccessToken").post(auth_controllers_1.refreshAccessToken);
+// check accessToken validity
+router.route("/checkAccessToken").get(auth_middleware_1.verifyJWT, auth_controllers_1.checkAccessToken);
 exports.default = router;

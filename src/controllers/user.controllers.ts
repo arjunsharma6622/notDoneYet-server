@@ -98,7 +98,7 @@ export const getAuthenticatedUser = asyncHandler(async (req: any, res: Response)
         .json(
             new ApiResponse(
                 200,
-                { user },
+                user,
                 "User fetched successfully"
             )
         )

@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.refreshAccessToken = exports.updatePassword = exports.logoutUser = exports.login = exports.signUp = void 0;
+exports.refreshAccessToken = exports.updatePassword = exports.logoutUser = exports.login = exports.signUp = exports.checkAccessToken = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const user_model_1 = require("../models/user.model");
 const ApiError_1 = require("../utils/ApiError");
@@ -36,6 +36,25 @@ const generateAccessAndRefreshTokens = (userId) => __awaiter(void 0, void 0, voi
         throw new ApiError_1.ApiError(500, "Something went wrong, while generating refresh annd access tokens");
     }
 });
+const generateAccessToken = (userId) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const user = yield user_model_1.User.findById(userId);
+        if (!user)
+            throw new ApiError_1.ApiError(404, "User not found");
+        const accessToken = user === null || user === void 0 ? void 0 : user.generateAccessToken();
+        return accessToken;
+    }
+    catch (err) {
+        console.log(err);
+        throw new ApiError_1.ApiError(500, "Something went wrong, while generating access token");
+    }
+});
+exports.checkAccessToken = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    return res
+        .status(200)
+        .json(new ApiResponse_1.ApiResponse(200, { accessToken: (_a = req === null || req === void 0 ? void 0 : req.user) === null || _a === void 0 ? void 0 : _a.accessToken }, "Access token is valid"));
+}));
 exports.signUp = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { name, userName, email, password } = req.body;
     if (!name || !userName || !email || !password) {
@@ -60,7 +79,7 @@ exports.signUp = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0
         .json(new ApiResponse_1.ApiResponse(201, { user: newUser }, "User created successfully"));
 }));
 exports.login = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+    var _b, _c;
     const { email, password } = req.body;
     if (!email || !password) {
         throw new ApiError_1.ApiError(400, "Missing required fields");
@@ -85,8 +104,8 @@ exports.login = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0,
         image: user === null || user === void 0 ? void 0 : user.image,
         bio: user === null || user === void 0 ? void 0 : user.bio,
         backgroundImg: user === null || user === void 0 ? void 0 : user.backgroundImg,
-        followers: (_a = user === null || user === void 0 ? void 0 : user.followers) === null || _a === void 0 ? void 0 : _a.length,
-        following: (_b = user === null || user === void 0 ? void 0 : user.following) === null || _b === void 0 ? void 0 : _b.length,
+        followers: (_b = user === null || user === void 0 ? void 0 : user.followers) === null || _b === void 0 ? void 0 : _b.length,
+        following: (_c = user === null || user === void 0 ? void 0 : user.following) === null || _c === void 0 ? void 0 : _c.length,
     };
     return res
         .status(200)
@@ -97,8 +116,8 @@ exports.login = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0,
 exports.logoutUser = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     //clear the cookies and remove the refresh token, this is being used as a secured route, so after executin the verifyJWT middlware we can access user from req.user
     // const updatedUser = await User.findByIdAndUpdate(req.user?._id, { $set: { refreshToken: undefined } }, { new: true }).select("+refreshToken")
-    var _c;
-    yield user_model_1.User.findByIdAndUpdate((_c = req.user) === null || _c === void 0 ? void 0 : _c._id, { $set: { refreshToken: "" } }, { new: true }).select("+refreshToken");
+    var _d;
+    yield user_model_1.User.findByIdAndUpdate((_d = req.user) === null || _d === void 0 ? void 0 : _d._id, { $set: { refreshToken: "" } }, { new: true }).select("+refreshToken");
     return res
         .status(200)
         .clearCookie("accessToken", utils_1.cookieOptions)
@@ -130,16 +149,24 @@ exports.refreshAccessToken = (0, asyncHandler_1.asyncHandler)((req, res) => __aw
     const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
     if (!incomingRefreshToken)
         throw new ApiError_1.ApiError(401, "Unauthorized request");
-    const decodedToken = jsonwebtoken_1.default.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET);
+    // catch the decoded errors, either by using a try catch of using it's callback function
+    // i did it using the callback function because it's easier to use the throw new ApiError in the callback function
+    const decodedToken = jsonwebtoken_1.default.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+            throw new ApiError_1.ApiError(401, "Invalid refresh token");
+        }
+        return decoded;
+    });
     const user = yield user_model_1.User.findById(decodedToken === null || decodedToken === void 0 ? void 0 : decodedToken._id);
     if (!user)
         throw new ApiError_1.ApiError(401, "Invalid refresh token");
     if (incomingRefreshToken !== (user === null || user === void 0 ? void 0 : user.refreshToken))
         throw new ApiError_1.ApiError(401, "Refresh token is expired or used");
-    const { accessToken, refreshToken: newRefreshToken } = yield generateAccessAndRefreshTokens(user._id.toString());
+    // const { accessToken, refreshToken: newRefreshToken } = await generateAccessAndRefreshTokens(user._id.toString())
+    // here dont generate both access and refresh token becuase it will be a never ending loop of access and refresh token, you can generate both at the initial auth login, but when you need to refresh the access token you need to generate the refresh token only
+    const accessToken = yield generateAccessToken(user._id.toString());
     return res
         .status(200)
         .cookie("accessToken", accessToken, Object.assign({}, utils_1.cookieOptions))
-        .cookie("refreshToken", newRefreshToken, Object.assign({}, utils_1.cookieOptions))
-        .json(new ApiResponse_1.ApiResponse(200, { accessToken, refreshToken: newRefreshToken }, "Access token refreshed"));
+        .json(new ApiResponse_1.ApiResponse(200, { accessToken }, "Access token refreshed"));
 }));

@@ -105,7 +105,7 @@ exports.getAuthenticatedUser = (0, asyncHandler_1.asyncHandler)((req, res) => __
         throw new ApiError_1.ApiError(404, "User not found");
     return res
         .status(200)
-        .json(new ApiResponse_1.ApiResponse(200, { user }, "User fetched successfully"));
+        .json(new ApiResponse_1.ApiResponse(200, user, "User fetched successfully"));
 }));
 exports.getUserFollowing = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;

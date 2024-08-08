@@ -1,5 +1,6 @@
 import express from "express";
 import {
+    checkAccessToken,
     login,
     logoutUser,
     refreshAccessToken,
@@ -21,9 +22,12 @@ router.route("/login").post(login)
 router.post("/updatePassowrd", updatePassword)
 
 // logout user
-router.route("/logout").post(verifyJWT, logoutUser)
+router.route("/logout").post(logoutUser)
 
 // refresh access token
-router.route("/refreshToken").post(refreshAccessToken)
+router.route("/refreshAccessToken").post(refreshAccessToken)
+
+// check accessToken validity
+router.route("/checkAccessToken").get(verifyJWT, checkAccessToken)
 
 export default router
