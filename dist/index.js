@@ -26,6 +26,8 @@ const user_routes_1 = __importDefault(require("./routes/user.routes"));
 const venue_routes_1 = __importDefault(require("./routes/venue.routes"));
 const cookieParser = require("cookie-parser");
 const utils_1 = require("./utils/utils");
+const asyncHandler_1 = require("./utils/asyncHandler");
+const ApiResponse_1 = require("./utils/ApiResponse");
 const app = (0, express_1.default)();
 const corsOptions = {
     origin: ["http://localhost:3000", "https://notdoneyet.in", "https://www.notdoneyet.in", "https://notdoneyet.vercel.app", "*"],
@@ -38,6 +40,10 @@ app.use(cookieParser());
 dotenv_1.default.config();
 const PORT = process.env.PORT || 8000;
 (0, utils_1.connectDB)();
+const getXYZ = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    return res.status(200).json(new ApiResponse_1.ApiResponse(200, { xyz: "abc" }, "xyz fetched successfully"));
+}));
+app.get("/xyz", getXYZ);
 app.use("/auth", auth_routes_1.default);
 app.use("/user", user_routes_1.default);
 app.use("/posts", posts_routes_1.default);

@@ -1,6 +1,6 @@
 import cors, { CorsOptions } from "cors";
 import dotenv from "dotenv";
-import express from "express";
+import express, { Request, Response } from "express";
 import { User } from "./models/user.model";
 import { Venue } from "./models/venue.model";
 import authRoutes from "./routes/auth.routes";
@@ -13,6 +13,8 @@ import venueRoutes from "./routes/venue.routes";
 import cookieParser = require("cookie-parser");
 
 import { checkNameAvailability, connectDB } from "./utils/utils";
+import { asyncHandler } from "./utils/asyncHandler";
+import { ApiResponse } from "./utils/ApiResponse";
 
 const app = express();
 
@@ -31,6 +33,18 @@ dotenv.config();
 const PORT = process.env.PORT || 8000;
 
 connectDB();
+
+const getXYZ = asyncHandler(async (req : Request, res : Response) => {
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      { xyz: "abc" },
+      "xyz fetched successfully"
+    )
+  )
+})
+
+app.get("/xyz", getXYZ)
 
 app.use("/auth", authRoutes)
 app.use("/user", userRoutes);

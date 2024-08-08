@@ -242,9 +242,11 @@ export const getRecommendedUsers = asyncHandler(async (req: any, res: Response) 
 export const updateUser = asyncHandler(async (req: any, res: Response) => {
     const userId = req.user._id;
     const updates = req.body;
+    // console.log(updates);
     const user = await User.findByIdAndUpdate(userId, updates, { new: true });
     if (!user) {
         throw new ApiError(404, "User not found");
     }
-    res.status(200).json(new ApiResponse(200, { user }, "User updated successfully"));
+
+    res.status(200).json(new ApiResponse(200, user, "User updated successfully"));
 })

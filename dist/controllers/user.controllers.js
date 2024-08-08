@@ -207,9 +207,10 @@ exports.getRecommendedUsers = (0, asyncHandler_1.asyncHandler)((req, res) => __a
 exports.updateUser = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.user._id;
     const updates = req.body;
+    // console.log(updates);
     const user = yield user_model_1.User.findByIdAndUpdate(userId, updates, { new: true });
     if (!user) {
         throw new ApiError_1.ApiError(404, "User not found");
     }
-    res.status(200).json(new ApiResponse_1.ApiResponse(200, { user }, "User updated successfully"));
+    res.status(200).json(new ApiResponse_1.ApiResponse(200, user, "User updated successfully"));
 }));
