@@ -7,19 +7,19 @@ const express_1 = __importDefault(require("express"));
 const venue_controllers_1 = require("../controllers/venue.controllers");
 const router = express_1.default.Router();
 // get all venues
-router.get("/", venue_controllers_1.getAllVenues);
-// get venue by venueId
-router.get("/:id", venue_controllers_1.getVenueById);
-// get venue by unique name
-router.get("/uniqueName/:uniqueName", venue_controllers_1.getVenueByUniqueName);
-// get user venues of a user by userId
-router.get("/user/:id", venue_controllers_1.getUserVenuesByUserId);
+router.route("/").get(venue_controllers_1.getAllVenues).post(venue_controllers_1.createVenue);
 // create a new venue
-router.post("/", venue_controllers_1.createVenue);
+router.route("/").post(venue_controllers_1.createVenue);
+// get venue by venueId
+router.route("/:id").get(venue_controllers_1.getVenueById).patch(venue_controllers_1.updateVenue).delete(venue_controllers_1.deleteVenue);
 // update venue by venueId
-router.patch("/:id", venue_controllers_1.updateVenue);
+router.route("/:id").patch(venue_controllers_1.updateVenue).delete(venue_controllers_1.deleteVenue);
+// delete venue by venueId
+router.route("/:id").delete(venue_controllers_1.deleteVenue);
+// get venue by unique name
+router.route("/uniqueName/:uniqueName").get(venue_controllers_1.getVenueByUniqueName);
+// get user venues of a user by userId
+router.route("/user/:id").get(venue_controllers_1.getUserVenuesByUserId);
 // add rating to venue
-router.patch("/rating/create", venue_controllers_1.addRatingToVenue);
-// delete a venue by id
-router.delete("/:id", venue_controllers_1.deleteVenue);
+router.route("/rating/create").patch(venue_controllers_1.addRatingToVenue);
 exports.default = router;

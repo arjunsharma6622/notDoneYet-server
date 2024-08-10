@@ -8,24 +8,24 @@ const user_controllers_1 = require("../controllers/user.controllers");
 const auth_middleware_1 = require("../middleware/auth.middleware");
 const router = express_1.default.Router();
 // get all users
-router.get("/", user_controllers_1.getAllUsers);
+router.route("/").get(user_controllers_1.getAllUsers);
 // get user by id or userName using query
-router.get("/getUser", user_controllers_1.getUserByIdOrUserName);
+router.route("/getUser").get(user_controllers_1.getUserByIdOrUserName);
 // get user Details using the userName and userRole from query
-router.get("/profile/details", user_controllers_1.getUserProfileDetails);
+router.route("/profile/details").get(user_controllers_1.getUserProfileDetails);
 // save post to user's saved posts
-router.post("/post/toggleSavePost", user_controllers_1.toggleSavePost);
+router.route("/post/toggleSavePost").post(user_controllers_1.toggleSavePost);
 /* --- SECURED ROUTES --- */
 // get recommended users
-router.get("/recommended", auth_middleware_1.verifyJWT, user_controllers_1.getRecommendedUsers);
+router.route("/recommended").get(auth_middleware_1.verifyJWT, user_controllers_1.getRecommendedUsers);
 // get authenticated dashboard user details via the access token
-router.get('/authenticatedUser', auth_middleware_1.verifyJWT, user_controllers_1.getAuthenticatedUser);
+router.route("/authenticatedUser").get(auth_middleware_1.verifyJWT, user_controllers_1.getAuthenticatedUser);
 // get user following
-router.get("/following", auth_middleware_1.verifyJWT, user_controllers_1.getUserFollowing);
+router.route("/following").get(auth_middleware_1.verifyJWT, user_controllers_1.getUserFollowing);
 // toggle follow user
-router.post("/toggleFollow", auth_middleware_1.verifyJWT, user_controllers_1.toggleFollowUser);
+router.route("/toggleFollow").post(auth_middleware_1.verifyJWT, user_controllers_1.toggleFollowUser);
 // toggle profile like
-router.post("/toggleProfileLike", auth_middleware_1.verifyJWT, user_controllers_1.toggleProfileLike);
+router.route("/toggleProfileLike").post(auth_middleware_1.verifyJWT, user_controllers_1.toggleProfileLike);
 // update user by userId
-router.patch("/", auth_middleware_1.verifyJWT, user_controllers_1.updateUser);
+router.route("/").patch(auth_middleware_1.verifyJWT, user_controllers_1.updateUser);
 exports.default = router;

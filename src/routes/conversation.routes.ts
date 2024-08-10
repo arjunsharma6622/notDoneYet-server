@@ -1,8 +1,6 @@
 import express from "express";
 import {
   addMessageToConversation,
-  createConversation,
-  createNewConversation,
   getConversationById,
   getUnreadMessagesCount,
   getUnreadMessagesCountOfUser,
@@ -12,13 +10,6 @@ import {
 import { verifyJWT } from "../middleware/auth.middleware";
 
 const router = express.Router();
-
-// create a conversation
-router.post("/", createConversation);
-
-// create a new conversation
-router.post("/create/new", createNewConversation)
-
 
 /* --- SECURED ROUTES --- */
 

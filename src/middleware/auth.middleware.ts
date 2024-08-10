@@ -23,6 +23,7 @@ export const verifyJWT = asyncHandler(async (req : any, res : Response, next : N
         }
 
         req.user = user;
+
         next();
     }
     catch(error : any){

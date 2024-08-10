@@ -7,33 +7,31 @@ import {
   getUserVenuesByUserId,
   getVenueById,
   getVenueByUniqueName,
-  updateVenue
+  updateVenue,
 } from "../controllers/venue.controllers";
 
 const router = express.Router();
 
 // get all venues
-router.get("/", getAllVenues);
-
-// get venue by venueId
-router.get("/:id", getVenueById);
-
-// get venue by unique name
-router.get("/uniqueName/:uniqueName", getVenueByUniqueName);
-
-// get user venues of a user by userId
-router.get("/user/:id", getUserVenuesByUserId);
+router.route("/").get(getAllVenues).post(createVenue);
 
 // create a new venue
-router.post("/", createVenue);
+router.route("/").post(createVenue);
 
+// get venue by venueId
+router.route("/:id").get(getVenueById).patch(updateVenue).delete(deleteVenue);
 // update venue by venueId
-router.patch("/:id", updateVenue);
+router.route("/:id").patch(updateVenue).delete(deleteVenue);
+// delete venue by venueId
+router.route("/:id").delete(deleteVenue);
+
+// get venue by unique name
+router.route("/uniqueName/:uniqueName").get(getVenueByUniqueName);
+
+// get user venues of a user by userId
+router.route("/user/:id").get(getUserVenuesByUserId);
 
 // add rating to venue
-router.patch("/rating/create", addRatingToVenue);
-
-// delete a venue by id
-router.delete("/:id", deleteVenue);
+router.route("/rating/create").patch(addRatingToVenue);
 
 export default router;

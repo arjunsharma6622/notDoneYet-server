@@ -8,37 +8,37 @@ import {
   getPostsByUser,
   getPostsOfAuthenticatedUser,
   getRecommendedPosts,
-  togglePostLike
+  togglePostLike,
 } from "../controllers/posts.controllers";
 import { verifyJWT } from "../middleware/auth.middleware";
 
 const router = express.Router();
 
 // get all posts
-router.get("/", getAllPosts);
-
-// get post by ID
-router.get("/:id", getPostById);
-
-// get posts of a user
-router.get("/getPosts/user", getPostsByUser);
-
-// get posts of a user
-router.get("/getPosts/authenticated", verifyJWT, getPostsOfAuthenticatedUser);
-
-//get user recommended posts
-router.route("/user/recommendedPosts").get(verifyJWT, getRecommendedPosts);
+router.route("/").get(getAllPosts);
 
 // create a post
 router.route("/").post(verifyJWT, createPost);
 
+// get post by ID
+router.route("/:id").get(getPostById);
+
+// delete post by ID
+router.route("/:id").delete(verifyJWT, deletePost);
+
+// get posts of a user
+router.route("/getPosts/user").get(getPostsByUser);
+
+// get posts of the authenticated user
+router.route("/getPosts/authenticated").get(verifyJWT, getPostsOfAuthenticatedUser);
+
+// get user recommended posts
+router.route("/user/recommendedPosts").get(verifyJWT, getRecommendedPosts);
+
 // toggle post like
 router.route("/togglePostLike").post(verifyJWT, togglePostLike);
 
-// create a post
+// add comment
 router.route("/addComment").post(verifyJWT, addComment);
-
-// delete post
-router.delete("/:id", verifyJWT, deletePost);
 
 export default router;

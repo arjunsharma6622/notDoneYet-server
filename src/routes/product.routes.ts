@@ -5,27 +5,27 @@ import {
   editProduct,
   getAllProducts,
   getProductById,
-  getProductsByBrand
+  getProductsByBrand,
 } from "../controllers/product.controllers";
 
 const router = express.Router();
 
-// get all the products
-router.get("/", getAllProducts);
+// get all products
+router.route("/").get(getAllProducts);
 
 // get product by id
-router.get("/productData/:id", getProductById);
+router.route("/productData/:id").get(getProductById);
 
-// get all products of user
-router.get("/user", getProductsByBrand);
+// get all products of a brand
+router.route("/user").get(getProductsByBrand);
 
 // add a product
-router.post("/", createProduct);
+router.route("/").post(createProduct);
 
 // edit product
-router.put("/:id", editProduct);
+router.route("/:id").put(editProduct);
 
 // delete product
-router.delete("/:id", deleteProduct);
+router.route("/:id").delete(deleteProduct);
 
 export default router;

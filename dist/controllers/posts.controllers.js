@@ -9,92 +9,57 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.addComment = exports.togglePostLike = exports.createPost = exports.getRecommendedPosts = exports.getPostsOfAuthenticatedUser = exports.deletePost = exports.getPostsByUser = exports.getPostById = exports.getAllPosts = void 0;
+exports.deletePost = exports.addComment = exports.togglePostLike = exports.createPost = exports.getRecommendedPosts = exports.getPostsOfAuthenticatedUser = exports.getPostsByUser = exports.getPostById = exports.getAllPosts = void 0;
 const post_model_1 = require("../models/post.model");
 const user_model_1 = require("../models/user.model");
-const asyncHandler_1 = require("../utils/asyncHandler");
-const ApiResponse_1 = require("../utils/ApiResponse");
 const ApiError_1 = require("../utils/ApiError");
-const getAllPosts = (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const posts = yield post_model_1.Post.find();
-        res.status(200).json(posts);
+const ApiResponse_1 = require("../utils/ApiResponse");
+const asyncHandler_1 = require("../utils/asyncHandler");
+exports.getAllPosts = (0, asyncHandler_1.asyncHandler)((_req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const posts = yield post_model_1.Post.find();
+    res.status(200).json(new ApiResponse_1.ApiResponse(200, posts, "Posts fetched successfully"));
+}));
+exports.getPostById = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const postId = req.params.id;
+    const post = yield post_model_1.Post.findById(postId)
+        .populate({
+        path: "user",
+        select: "name image bio followers following role userName",
+    })
+        .populate({
+        path: "comments",
+        populate: { path: "user", select: "name image" },
+    })
+        .populate({ path: "likes", select: "name image _id" })
+        .sort({ createdAt: -1 });
+    if (!post)
+        throw new ApiError_1.ApiError(404, "Post not found");
+    res.status(200).json(new ApiResponse_1.ApiResponse(200, post, "Post fetched successfully"));
+}));
+exports.getPostsByUser = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { userId, userName } = req.query;
+    if (!userId && !userName)
+        throw new ApiError_1.ApiError(400, "User ID or User Name not provided");
+    let user;
+    if (userId) {
+        user = yield user_model_1.User.findById(userId);
     }
-    catch (err) {
-        console.error(`Error fetching posts: ${err}`);
-        res.status(500).json({ error: "Internal Server Error" });
+    else if (userName) {
+        user = yield user_model_1.User.findOne({ userName: userName });
     }
-});
-exports.getAllPosts = getAllPosts;
-const getPostById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const postId = req.params.id;
-        const post = yield post_model_1.Post.findById(postId)
-            .populate({
-            path: "user",
-            select: "name image bio followers following role userName",
-        })
-            .populate({
-            path: "comments",
-            populate: { path: "user", select: "name image" },
-        })
-            .populate({ path: "likes", select: "name image _id" })
-            .sort({ createdAt: -1 });
-        if (!post) {
-            return res.status(404).json({ error: "Post not found" });
-        }
-        res.status(200).json(post);
+    if (!user) {
+        throw new ApiError_1.ApiError(404, "User not found");
     }
-    catch (err) {
-        console.error(`Error fetching posts: ${err}`);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-});
-exports.getPostById = getPostById;
-const getPostsByUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { userId, userName } = req.query;
-        if (!userId && !userName) {
-            return res.status(400).json({ error: "User ID or User Name not provided" });
-        }
-        let user;
-        if (userId) {
-            user = yield user_model_1.User.findById(userId);
-        }
-        else if (userName) {
-            user = yield user_model_1.User.findOne({ userName: userName });
-        }
-        if (!user) {
-            return res.status(404).json({ error: "User not found" });
-        }
-        const posts = yield post_model_1.Post.find({ user: user._id })
-            .populate({ path: "user", select: "name image bio role followers userName" })
-            .populate({
-            path: "comments",
-            populate: { path: "user", select: "name image" },
-        })
-            .populate({ path: "likes", select: "name image" })
-            .sort({ createdAt: -1 });
-        res.status(200).json(posts);
-    }
-    catch (err) {
-        console.error(`Error fetching posts: ${err}`);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-});
-exports.getPostsByUser = getPostsByUser;
-const deletePost = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const postId = req.params.id;
-        const post = yield post_model_1.Post.findByIdAndDelete(postId);
-        res.status(200).json(post);
-    }
-    catch (err) {
-        console.error(`Error deleting post: ${err}`);
-        res.status(500).json({ message: err });
-    }
-});
-exports.deletePost = deletePost;
+    const posts = yield post_model_1.Post.find({ user: user._id })
+        .populate({ path: "user", select: "name image bio role followers userName" })
+        .populate({
+        path: "comments",
+        populate: { path: "user", select: "name image" },
+    })
+        .populate({ path: "likes", select: "name image" })
+        .sort({ createdAt: -1 });
+    return res.status(200).json(new ApiResponse_1.ApiResponse(200, posts, "Posts fetched successfully"));
+}));
 /* --- SECURE CONTROLLERS --- */
 exports.getPostsOfAuthenticatedUser = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.user._id;
@@ -115,78 +80,71 @@ exports.getPostsOfAuthenticatedUser = (0, asyncHandler_1.asyncHandler)((req, res
         .sort({ createdAt: -1 });
     return res.status(200).json(new ApiResponse_1.ApiResponse(200, posts, "Posts fetched successfully"));
 }));
-const getRecommendedPosts = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.getRecommendedPosts = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     const userId = (_a = req === null || req === void 0 ? void 0 : req.user) === null || _a === void 0 ? void 0 : _a._id;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-    try {
-        // Find the user and populate their following list with only the posts field
-        const user = yield user_model_1.User.findById(userId)
-            .populate({
-            path: "following",
-            select: "posts",
-        })
-            .lean();
-        if (!user) {
-            return res.status(404).json({ error: "User not found" });
-        }
-        // Get the posts from the users that the current user is following
-        const followingUserPosts = ((_b = user === null || user === void 0 ? void 0 : user.following) === null || _b === void 0 ? void 0 : _b.flatMap((f) => f.posts)) || [];
-        // Find the recommended posts from the users that the current user is following
-        const recommendedPosts = yield post_model_1.Post.find({
-            _id: { $in: followingUserPosts },
-        })
-            .populate({
-            path: "user",
-            select: "name image bio role userName followers",
-        })
-            .populate({
-            path: "comments",
-            populate: {
-                path: "user",
-                select: "name image bio role _id",
-            },
-        })
-            .populate({ path: "likes", select: "name image _id" })
-            .sort({ createdAt: -1 })
-            .lean();
-        // Find the remaining posts not in followingUserPosts
-        const remainingPosts = yield post_model_1.Post.find({
-            _id: { $nin: [...followingUserPosts] },
-            user: { $ne: userId }
-        })
-            .populate({
-            path: "user",
-            select: "name image bio role userName followers",
-        })
-            .populate({
-            path: "comments",
-            populate: {
-                path: "user",
-                select: "name image bio role _id",
-            },
-        })
-            .populate({ path: "likes", select: "name image _id" })
-            .sort({ createdAt: -1 })
-            .lean();
-        // Combine recommendedPosts and remainingPosts
-        const allPosts = [...recommendedPosts, ...remainingPosts];
-        // Paginate the combined results
-        const paginatedPosts = allPosts.slice((page - 1) * limit, page * limit);
-        // Format the posts to include the number of comments and likes
-        const formattedPosts = paginatedPosts.map(post => {
-            var _a, _b;
-            return (Object.assign(Object.assign({}, post), { numComments: (_a = post.comments) === null || _a === void 0 ? void 0 : _a.length, numLikes: (_b = post.likes) === null || _b === void 0 ? void 0 : _b.length }));
-        });
-        res.status(200).json(formattedPosts);
+    // Find the user and populate their following list with only the posts field
+    const user = yield user_model_1.User.findById(userId)
+        .populate({
+        path: "following",
+        select: "posts",
+    })
+        .lean();
+    if (!user) {
+        return res.status(404).json({ error: "User not found" });
     }
-    catch (err) {
-        console.error(`Error fetching posts: ${err}`);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-});
-exports.getRecommendedPosts = getRecommendedPosts;
+    // Get the posts from the users that the current user is following
+    const followingUserPosts = ((_b = user === null || user === void 0 ? void 0 : user.following) === null || _b === void 0 ? void 0 : _b.flatMap((f) => f.posts)) || [];
+    // Find the recommended posts from the users that the current user is following
+    const recommendedPosts = yield post_model_1.Post.find({
+        _id: { $in: followingUserPosts },
+    })
+        .populate({
+        path: "user",
+        select: "name image bio role userName followers",
+    })
+        .populate({
+        path: "comments",
+        populate: {
+            path: "user",
+            select: "name image bio role _id",
+        },
+    })
+        .populate({ path: "likes", select: "name image _id" })
+        .sort({ createdAt: -1 })
+        .lean();
+    // Find the remaining posts not in followingUserPosts
+    const remainingPosts = yield post_model_1.Post.find({
+        _id: { $nin: [...followingUserPosts] },
+        user: { $ne: userId }
+    })
+        .populate({
+        path: "user",
+        select: "name image bio role userName followers",
+    })
+        .populate({
+        path: "comments",
+        populate: {
+            path: "user",
+            select: "name image bio role _id",
+        },
+    })
+        .populate({ path: "likes", select: "name image _id" })
+        .sort({ createdAt: -1 })
+        .lean();
+    // Combine recommendedPosts and remainingPosts
+    const allPosts = [...recommendedPosts, ...remainingPosts];
+    // Paginate the combined results
+    const paginatedPosts = allPosts.slice((page - 1) * limit, page * limit);
+    // Format the posts to include the number of comments and likes
+    const formattedPosts = paginatedPosts.map(post => {
+        var _a, _b;
+        return (Object.assign(Object.assign({}, post), { numComments: (_a = post.comments) === null || _a === void 0 ? void 0 : _a.length, numLikes: (_b = post.likes) === null || _b === void 0 ? void 0 : _b.length }));
+    });
+    res.status(200).json(new ApiResponse_1.ApiResponse(200, formattedPosts, "Posts fetched successfully"));
+}));
 exports.createPost = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.user._id;
     const { description, images } = req.body;
@@ -196,7 +154,7 @@ exports.createPost = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(vo
         images
     });
     yield newPost.save();
-    res.status(201).json(new ApiResponse_1.ApiResponse(201, newPost, "Post created successfully"));
+    return res.status(201).json(new ApiResponse_1.ApiResponse(201, newPost, "Post created successfully"));
 }));
 exports.togglePostLike = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let message = "";
@@ -217,7 +175,7 @@ exports.togglePostLike = (0, asyncHandler_1.asyncHandler)((req, res) => __awaite
         message = "Post liked";
     }
     yield post.save();
-    res.status(200).json(new ApiResponse_1.ApiResponse(200, message));
+    return res.status(200).json(new ApiResponse_1.ApiResponse(200, message));
 }));
 exports.addComment = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.user._id;
@@ -252,4 +210,9 @@ exports.addComment = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(vo
         yield parentComment.save();
     }
     return res.status(201).json(new ApiResponse_1.ApiResponse(201, newComment, "Comment added successfully"));
+}));
+exports.deletePost = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const postId = req.params.id;
+    const post = yield post_model_1.Post.findByIdAndDelete(postId);
+    return res.status(200).json(new ApiResponse_1.ApiResponse(200, {}, "Post deleted successfully"));
 }));

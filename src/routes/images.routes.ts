@@ -6,8 +6,10 @@ import {
 
 const router = express.Router();
 
-router.get("/deleteImage", deleteImage);
+// Delete a single image
+router.delete("/deleteImage", deleteImage);
 
-router.get("/deleteFolder", deleteImagesFolder);
+// Delete an entire images folder
+router.delete("/deleteFolder", deleteImagesFolder);
 
 export default router;

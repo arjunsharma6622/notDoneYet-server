@@ -11,7 +11,7 @@ import { verifyJWT } from "../middleware/auth.middleware";
 
 const router = express.Router()
 
-router.post("/signup", signUp)
+router.route("/signup").post(signUp)
 
 // login route, using the JWT tokens
 router.route("/login").post(login)
@@ -19,7 +19,7 @@ router.route("/login").post(login)
 /* --- SECURED ROUTES --- */
 
 //  update password
-router.post("/updatePassowrd", updatePassword)
+router.route("/updatePassowrd").post(updatePassword)
 
 // logout user
 router.route("/logout").post(logoutUser)
