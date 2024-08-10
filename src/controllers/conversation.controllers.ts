@@ -212,7 +212,11 @@ export const updateMessageSeen = asyncHandler(async (req: any, res: Response) =>
                 break;
             }
 
-            if (conversation.messages[i].senderId != currUserId) {
+            //BUG_RESOLVED: here if you compare the objectId directly the === and == will check it by refrence, and two objects refs are different, so compare the toString()
+
+            if (conversation.messages[i].senderId?.toString() === currUserId.toString()) {
+
+            }else{
                 conversation.messages[i].seen = true;
             }
         }

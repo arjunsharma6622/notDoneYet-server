@@ -165,6 +165,7 @@ exports.addMessageToConversation = (0, asyncHandler_1.asyncHandler)((req, res) =
 }));
 // update the message seen
 exports.updateMessageSeen = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _c;
     try {
         const conversationId = req.params.id;
         const currUserId = req.user._id;
@@ -176,7 +177,10 @@ exports.updateMessageSeen = (0, asyncHandler_1.asyncHandler)((req, res) => __awa
             if (conversation.messages[i].seen == true) {
                 break;
             }
-            if (conversation.messages[i].senderId != currUserId) {
+            //BUG_RESOLVED: here if you compare the objectId directly the === and == will check it by refrence, and two objects refs are different, so compare the toString()
+            if (((_c = conversation.messages[i].senderId) === null || _c === void 0 ? void 0 : _c.toString()) === currUserId.toString()) {
+            }
+            else {
                 conversation.messages[i].seen = true;
             }
         }
@@ -210,8 +214,8 @@ exports.getUnreadMessagesCount = (0, asyncHandler_1.asyncHandler)((req, res) => 
 }));
 // get total unread messages of user
 exports.getUnreadMessagesCountOfUser = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _c, _d;
-    const userId = (_c = req === null || req === void 0 ? void 0 : req.user) === null || _c === void 0 ? void 0 : _c._id;
+    var _d, _e;
+    const userId = (_d = req === null || req === void 0 ? void 0 : req.user) === null || _d === void 0 ? void 0 : _d._id;
     const conversations = yield conversation_model_1.Conversation.find({
         users: { $in: [userId] },
     });
@@ -222,7 +226,7 @@ exports.getUnreadMessagesCountOfUser = (0, asyncHandler_1.asyncHandler)((req, re
             if (conversations[i].messages[j].seen == true) {
                 break;
             }
-            if (((_d = conversations[i].messages[j].senderId) === null || _d === void 0 ? void 0 : _d.toString()) != userId) {
+            if (((_e = conversations[i].messages[j].senderId) === null || _e === void 0 ? void 0 : _e.toString()) != userId) {
                 currConversationUnreadCount = currConversationUnreadCount + 1;
             }
         }

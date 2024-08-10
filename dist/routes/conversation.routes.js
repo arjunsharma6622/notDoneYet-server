@@ -23,5 +23,5 @@ router.get("/user/getAllConversations", auth_middleware_1.verifyJWT, conversatio
 // add messages via post
 router.post("/addMessage/:id", auth_middleware_1.verifyJWT, conversation_controllers_1.addMessageToConversation);
 // update messages seen
-router.put("/:id/seen", auth_middleware_1.verifyJWT, conversation_controllers_1.updateMessageSeen);
+router.patch("/:id/seen", auth_middleware_1.verifyJWT, conversation_controllers_1.updateMessageSeen);
 exports.default = router;

@@ -38,6 +38,6 @@ router.get("/user/getAllConversations", verifyJWT, getUserConversation);
 router.post("/addMessage/:id", verifyJWT, addMessageToConversation);
 
 // update messages seen
-router.put("/:id/seen", verifyJWT, updateMessageSeen);
+router.patch("/:id/seen", verifyJWT, updateMessageSeen);
 
 export default router;
