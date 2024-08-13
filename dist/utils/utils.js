@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CLIENT_HEAD = exports.createJWTToken = exports.checkNameAvailability = exports.deleteImageFromCloudinary = exports.cookieOptions = exports.connectDB = void 0;
+exports.createJWTToken = exports.checkNameAvailability = exports.deleteImageFromCloudinary = exports.cookieOptions = exports.connectDB = void 0;
 const cloudinary_1 = require("cloudinary");
 const dotenv_1 = __importDefault(require("dotenv"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
@@ -89,8 +89,3 @@ const createJWTToken = (id) => {
     });
 };
 exports.createJWTToken = createJWTToken;
-exports.CLIENT_HEAD = process.env.NODE_ENV === 'development'
-    ? "http://localhost:3000"
-    : process.env.NODE_ENV === 'production'
-        ? "https://notdoneyet.in"
-        : "http://localhost:3000"; // Default value if NODE_ENV is not set

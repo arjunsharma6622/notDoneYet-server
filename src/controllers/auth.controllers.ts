@@ -5,7 +5,7 @@ import { ApiError } from '../utils/ApiError';
 import { ApiResponse } from '../utils/ApiResponse';
 import { asyncHandler } from '../utils/asyncHandler';
 import jwt from "jsonwebtoken"
-import { CLIENT_HEAD, cookieOptions } from '../utils/utils';
+import { cookieOptions } from '../utils/utils';
 import axios from 'axios';
 import qs from "querystring"
 import { error } from 'console';
@@ -121,11 +121,10 @@ export const googleOauthHandler = (async (req: any, res: Response) => {
         res.cookie("refreshToken", refreshToken, cookieOptions)
 
         // 7. redirect back to client
-        console.log(CLIENT_HEAD)
-        res.redirect(`${CLIENT_HEAD}/login`)
+        res.redirect(`${process.env.CLIENT_HEAD}/login`)
     } catch (err) {
         console.log(err)
-        res.redirect("http://localhost:3000/login")
+        res.redirect(`${process.env.CLIENT_HEAD}/login`)
     }
 })
 

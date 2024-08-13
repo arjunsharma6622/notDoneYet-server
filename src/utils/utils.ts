@@ -75,11 +75,3 @@ export const createJWTToken = (id: string) => {
     expiresIn: 3 * 24 * 60 * 60,
   });
 };
-
-
-export const CLIENT_HEAD =
-  process.env.NODE_ENV === 'development'
-    ? "http://localhost:3000"
-    : process.env.NODE_ENV === 'production'
-    ? "https://notdoneyet.in"
-    : "http://localhost:3000"; // Default value if NODE_ENV is not set

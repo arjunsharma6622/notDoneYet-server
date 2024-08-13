@@ -111,12 +111,11 @@ exports.googleOauthHandler = ((req, res) => __awaiter(void 0, void 0, void 0, fu
         res.cookie("accessToken", accessToken, utils_1.cookieOptions);
         res.cookie("refreshToken", refreshToken, utils_1.cookieOptions);
         // 7. redirect back to client
-        console.log(utils_1.CLIENT_HEAD);
-        res.redirect(`${utils_1.CLIENT_HEAD}/login`);
+        res.redirect(`${process.env.CLIENT_HEAD}/login`);
     }
     catch (err) {
         console.log(err);
-        res.redirect("http://localhost:3000/login");
+        res.redirect(`${process.env.CLIENT_HEAD}/login`);
     }
 }));
 exports.checkAccessToken = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
