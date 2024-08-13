@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.refreshAccessToken = exports.updatePassword = exports.logoutUser = exports.login = exports.signUp = exports.checkAccessToken = void 0;
+exports.refreshAccessToken = exports.updatePassword = exports.logoutUser = exports.login = exports.signUp = exports.checkAccessToken = exports.googleOauthHandler = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const user_model_1 = require("../models/user.model");
 const ApiError_1 = require("../utils/ApiError");
@@ -20,6 +20,8 @@ const ApiResponse_1 = require("../utils/ApiResponse");
 const asyncHandler_1 = require("../utils/asyncHandler");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const utils_1 = require("../utils/utils");
+const axios_1 = __importDefault(require("axios"));
+const querystring_1 = __importDefault(require("querystring"));
 const generateAccessAndRefreshTokens = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const user = yield user_model_1.User.findById(userId);
@@ -49,6 +51,74 @@ const generateAccessToken = (userId) => __awaiter(void 0, void 0, void 0, functi
         throw new ApiError_1.ApiError(500, "Something went wrong, while generating access token");
     }
 });
+// google service for getting tokens using the code
+const getGoogleOauthTokens = (code) => __awaiter(void 0, void 0, void 0, function* () {
+    const url = "https://oauth2.googleapis.com/token";
+    const values = {
+        code,
+        client_id: process.env.GOOGLE_CLIENT_ID,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET,
+        redirect_uri: process.env.GOOGLE_OAUTH_REDIRECT_URI,
+        grant_type: "authorization_code"
+    };
+    try {
+        const res = yield axios_1.default.post(url, querystring_1.default.stringify(values), {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
+        return res.data;
+    }
+    catch (err) {
+        console.log("Failed to fetch Google Oauth Tokens, " + err);
+        throw new ApiError_1.ApiError(500, "Failed to fetch Google Oauth Tokens");
+    }
+});
+exports.googleOauthHandler = ((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        // 1. get the code from the query string
+        const code = req.query.code;
+        // 2. get the ID and access token with the code
+        const { id_token, access_token } = yield getGoogleOauthTokens(code);
+        // 3. get the user with tokens
+        const googleUserData = yield axios_1.default.get(`https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${access_token}`, {
+            headers: {
+                Authorization: `Bearer ${id_token}`
+            }
+        });
+        // 4. add the user
+        const { name, email, picture, verified_email, googleId } = googleUserData.data;
+        const userName = email.split("@")[0];
+        if (!verified_email)
+            throw new ApiError_1.ApiError(400, "Google Email is not verified");
+        let user = yield user_model_1.User.findOne({ email });
+        // check if there is a user, if there is no user with same email then create a new user
+        if (!user && verified_email) {
+            const newUser = new user_model_1.User({
+                name,
+                userName,
+                email,
+                image: picture,
+                googleId
+            });
+            yield newUser.save();
+            user = newUser;
+        }
+        // if a user with same email already exits then it means that user is authenticated by google, so we dont need to reauthenticate using the password, so simply generate the tokens
+        // 5. create access and refresh tokens
+        const { accessToken, refreshToken } = yield generateAccessAndRefreshTokens(user === null || user === void 0 ? void 0 : user._id.toString());
+        // 6. set the cookies
+        res.cookie("accessToken", accessToken, utils_1.cookieOptions);
+        res.cookie("refreshToken", refreshToken, utils_1.cookieOptions);
+        // 7. redirect back to client
+        console.log(utils_1.CLIENT_HEAD);
+        res.redirect(`${utils_1.CLIENT_HEAD}/login`);
+    }
+    catch (err) {
+        console.log(err);
+        res.redirect("http://localhost:3000/login");
+    }
+}));
 exports.checkAccessToken = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     return res

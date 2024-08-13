@@ -5,7 +5,11 @@ import { ApiError } from '../utils/ApiError';
 import { ApiResponse } from '../utils/ApiResponse';
 import { asyncHandler } from '../utils/asyncHandler';
 import jwt from "jsonwebtoken"
-import { cookieOptions } from '../utils/utils';
+import { CLIENT_HEAD, cookieOptions } from '../utils/utils';
+import axios from 'axios';
+import qs from "querystring"
+import { error } from 'console';
+import { UserDocument } from '../types/user.types';
 
 const generateAccessAndRefreshTokens = async (userId: string) => {
     try {
@@ -42,6 +46,89 @@ const generateAccessToken = async (userId: string) => {
         throw new ApiError(500, "Something went wrong, while generating access token");
     }
 }
+
+// google service for getting tokens using the code
+const getGoogleOauthTokens = async (code: string) => {
+    const url = "https://oauth2.googleapis.com/token"
+    const values = {
+        code,
+        client_id: process.env.GOOGLE_CLIENT_ID,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET,
+        redirect_uri: process.env.GOOGLE_OAUTH_REDIRECT_URI,
+        grant_type: "authorization_code"
+    }
+
+    try {
+        const res = await axios.post(url, qs.stringify(values), {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        })
+        return res.data
+    }
+    catch (err) {
+        console.log("Failed to fetch Google Oauth Tokens, " + err)
+        throw new ApiError(500, "Failed to fetch Google Oauth Tokens")
+    }
+}
+
+
+export const googleOauthHandler = (async (req: any, res: Response) => {
+    try {
+        // 1. get the code from the query string
+        const code = req.query.code as string
+
+        // 2. get the ID and access token with the code
+        const { id_token, access_token } = await getGoogleOauthTokens(code)
+
+        // 3. get the user with tokens
+        const googleUserData = await axios.get(`https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${access_token}`, {
+            headers: {
+                Authorization: `Bearer ${id_token}`
+            }
+        })
+
+        // 4. add the user
+        const { name, email, picture, verified_email, googleId } = googleUserData.data
+
+        const userName = email.split("@")[0]
+
+        if(!verified_email) throw new ApiError(400, "Google Email is not verified")
+
+        let user: UserDocument | null = await User.findOne({ email })
+
+        // check if there is a user, if there is no user with same email then create a new user
+        if (!user && verified_email) {
+            const newUser = new User({
+                name,
+                userName,
+                email,
+                image: picture,
+                googleId 
+            })
+
+            await newUser.save()
+
+            user = newUser
+        }
+
+        // if a user with same email already exits then it means that user is authenticated by google, so we dont need to reauthenticate using the password, so simply generate the tokens
+        // 5. create access and refresh tokens
+        const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user?._id.toString())
+
+        // 6. set the cookies
+        res.cookie("accessToken", accessToken, cookieOptions)
+        res.cookie("refreshToken", refreshToken, cookieOptions)
+
+        // 7. redirect back to client
+        console.log(CLIENT_HEAD)
+        res.redirect(`${CLIENT_HEAD}/login`)
+    } catch (err) {
+        console.log(err)
+        res.redirect("http://localhost:3000/login")
+    }
+})
+
 
 export const checkAccessToken = asyncHandler(async (req: any, res: Response) => {
     return res

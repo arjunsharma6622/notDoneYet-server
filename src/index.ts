@@ -1,6 +1,6 @@
 import cors, { CorsOptions } from "cors";
 import dotenv from "dotenv";
-import express, { Request, Response } from "express";
+import express from "express";
 import { User } from "./models/user.model";
 import { Venue } from "./models/venue.model";
 import authRoutes from "./routes/auth.routes";
@@ -12,9 +12,8 @@ import userRoutes from "./routes/user.routes";
 import venueRoutes from "./routes/venue.routes";
 import cookieParser = require("cookie-parser");
 
+import { googleOauthHandler } from "./controllers/auth.controllers";
 import { checkNameAvailability, connectDB } from "./utils/utils";
-import { asyncHandler } from "./utils/asyncHandler";
-import { ApiResponse } from "./utils/ApiResponse";
 
 const app = express();
 
@@ -34,18 +33,6 @@ const PORT = process.env.PORT || 8000;
 
 connectDB();
 
-const getXYZ = asyncHandler(async (req : Request, res : Response) => {
-  return res.status(200).json(
-    new ApiResponse(
-      200,
-      { xyz: "abc" },
-      "xyz fetched successfully"
-    )
-  )
-})
-
-app.get("/xyz", getXYZ)
-
 app.use("/auth", authRoutes)
 app.use("/user", userRoutes);
 app.use("/posts", postRoutes);
@@ -53,6 +40,9 @@ app.use("/venue", venueRoutes);
 app.use("/conversation", conversationRoutes);
 app.use("/product", productRoutes);
 app.use("/images", imageRoutes);
+
+app.get("/auth/google", googleOauthHandler);
+
 
 app.get("/checkUserName", async (req, res) => {
   const { userName } = req.query;

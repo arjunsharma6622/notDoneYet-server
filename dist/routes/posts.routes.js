@@ -21,6 +21,8 @@ router.route("/getPosts/user").get(posts_controllers_1.getPostsByUser);
 router.route("/getPosts/authenticated").get(auth_middleware_1.verifyJWT, posts_controllers_1.getPostsOfAuthenticatedUser);
 // get user recommended posts
 router.route("/user/recommendedPosts").get(auth_middleware_1.verifyJWT, posts_controllers_1.getRecommendedPosts);
+// get post comments
+router.route("/:id/getComments").get(auth_middleware_1.verifyJWT, posts_controllers_1.getPostComments);
 // toggle post like
 router.route("/togglePostLike").post(auth_middleware_1.verifyJWT, posts_controllers_1.togglePostLike);
 // add comment

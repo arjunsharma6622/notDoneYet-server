@@ -12,12 +12,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createJWTToken = exports.checkNameAvailability = exports.deleteImageFromCloudinary = exports.cookieOptions = exports.connectDB = void 0;
-const mongoose_1 = __importDefault(require("mongoose"));
+exports.CLIENT_HEAD = exports.createJWTToken = exports.checkNameAvailability = exports.deleteImageFromCloudinary = exports.cookieOptions = exports.connectDB = void 0;
 const cloudinary_1 = require("cloudinary");
 const dotenv_1 = __importDefault(require("dotenv"));
-dotenv_1.default.config();
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const mongoose_1 = __importDefault(require("mongoose"));
+dotenv_1.default.config();
 const connectDB = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const mongoURL = process.env.MONGO_URL;
@@ -89,3 +89,8 @@ const createJWTToken = (id) => {
     });
 };
 exports.createJWTToken = createJWTToken;
+exports.CLIENT_HEAD = process.env.NODE_ENV === 'development'
+    ? "http://localhost:3000"
+    : process.env.NODE_ENV === 'production'
+        ? "https://notdoneyet.in"
+        : "http://localhost:3000"; // Default value if NODE_ENV is not set

@@ -1,8 +1,8 @@
-import mongoose from "mongoose";
-import { v2 as cloudinary } from 'cloudinary'
+import { v2 as cloudinary } from 'cloudinary';
 import dotenv from "dotenv";
-dotenv.config();
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
+dotenv.config();
 
 export const connectDB = async (): Promise<void> => {
   try {
@@ -25,12 +25,12 @@ export const cookieOptions: { httpOnly: boolean; secure: boolean; sameSite: "non
 };
 
 export const deleteImageFromCloudinary = async ({ secureUrl }: { secureUrl: string }) => {
-  cloudinary.config({ 
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
-    api_key: process.env.CLOUDINARY_API_KEY, 
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET
   });
-  try {    
+  try {
     const splitUrl = secureUrl.split("/ndy/");
     const publicIdWithExtension = splitUrl[1];
     const lastDotIndex = publicIdWithExtension.lastIndexOf(".");
@@ -48,7 +48,7 @@ export const deleteImageFromCloudinary = async ({ secureUrl }: { secureUrl: stri
 };
 
 
-export const checkNameAvailability = async (Model : mongoose.Model<any>, nameField : string, nameValue : string, res : any) => {
+export const checkNameAvailability = async (Model: mongoose.Model<any>, nameField: string, nameValue: string, res: any) => {
   try {
     if (!nameValue) {
       return res.status(400).json({ error: `${nameField} is required` });
@@ -69,9 +69,17 @@ export const checkNameAvailability = async (Model : mongoose.Model<any>, nameFie
 };
 
 
-const secretKey : string = process.env.JWT_SECRET!;
-export const createJWTToken = (id : string) => {
+const secretKey: string = process.env.JWT_SECRET!;
+export const createJWTToken = (id: string) => {
   return jwt.sign({ id }, secretKey, {
     expiresIn: 3 * 24 * 60 * 60,
   });
 };
+
+
+export const CLIENT_HEAD =
+  process.env.NODE_ENV === 'development'
+    ? "http://localhost:3000"
+    : process.env.NODE_ENV === 'production'
+    ? "https://notdoneyet.in"
+    : "http://localhost:3000"; // Default value if NODE_ENV is not set

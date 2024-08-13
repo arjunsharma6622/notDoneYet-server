@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deletePost = exports.addComment = exports.togglePostLike = exports.createPost = exports.getRecommendedPosts = exports.getPostsOfAuthenticatedUser = exports.getPostsByUser = exports.getPostById = exports.getAllPosts = void 0;
+exports.deletePost = exports.addComment = exports.togglePostLike = exports.createPost = exports.getPostComments = exports.getRecommendedPosts = exports.getPostsOfAuthenticatedUser = exports.getPostsByUser = exports.getPostById = exports.getAllPosts = void 0;
 const post_model_1 = require("../models/post.model");
 const user_model_1 = require("../models/user.model");
 const ApiError_1 = require("../utils/ApiError");
@@ -28,9 +28,9 @@ exports.getPostById = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(v
     })
         .populate({
         path: "comments",
-        populate: { path: "user", select: "name image" },
+        populate: { path: "user", select: "name image userName" },
     })
-        .populate({ path: "likes", select: "name image _id" })
+        .populate({ path: "likes", select: "name image _id userName" })
         .sort({ createdAt: -1 });
     if (!post)
         throw new ApiError_1.ApiError(404, "Post not found");
@@ -54,9 +54,9 @@ exports.getPostsByUser = (0, asyncHandler_1.asyncHandler)((req, res) => __awaite
         .populate({ path: "user", select: "name image bio role followers userName" })
         .populate({
         path: "comments",
-        populate: { path: "user", select: "name image" },
+        populate: { path: "user", select: "name image userName" },
     })
-        .populate({ path: "likes", select: "name image" })
+        .populate({ path: "likes", select: "name image userName" })
         .sort({ createdAt: -1 });
     return res.status(200).json(new ApiResponse_1.ApiResponse(200, posts, "Posts fetched successfully"));
 }));
@@ -74,9 +74,9 @@ exports.getPostsOfAuthenticatedUser = (0, asyncHandler_1.asyncHandler)((req, res
         .populate({ path: "user", select: "name image bio role followers userName" })
         .populate({
         path: "comments",
-        populate: { path: "user", select: "name image" },
+        populate: { path: "user", select: "name image userName" },
     })
-        .populate({ path: "likes", select: "name image" })
+        .populate({ path: "likes", select: "name image userName" })
         .sort({ createdAt: -1 });
     return res.status(200).json(new ApiResponse_1.ApiResponse(200, posts, "Posts fetched successfully"));
 }));
@@ -105,14 +105,14 @@ exports.getRecommendedPosts = (0, asyncHandler_1.asyncHandler)((req, res) => __a
         path: "user",
         select: "name image bio role userName followers",
     })
-        .populate({
-        path: "comments",
-        populate: {
-            path: "user",
-            select: "name image bio role _id",
-        },
-    })
-        .populate({ path: "likes", select: "name image _id" })
+        // .populate({
+        //     path: "comments",
+        //     populate: {
+        //         path: "user",
+        //         select: "name image bio role _id userName",
+        //     },
+        // })
+        .populate({ path: "likes", select: "name image _id userName" })
         .sort({ createdAt: -1 })
         .lean();
     // Find the remaining posts not in followingUserPosts
@@ -124,13 +124,13 @@ exports.getRecommendedPosts = (0, asyncHandler_1.asyncHandler)((req, res) => __a
         path: "user",
         select: "name image bio role userName followers",
     })
-        .populate({
-        path: "comments",
-        populate: {
-            path: "user",
-            select: "name image bio role _id",
-        },
-    })
+        // .populate({
+        //     path: "comments",
+        //     populate: {
+        //         path: "user",
+        //         select: "name image bio role _id",
+        //     },
+        // })
         .populate({ path: "likes", select: "name image _id" })
         .sort({ createdAt: -1 })
         .lean();
@@ -144,6 +144,18 @@ exports.getRecommendedPosts = (0, asyncHandler_1.asyncHandler)((req, res) => __a
         return (Object.assign(Object.assign({}, post), { numComments: (_a = post.comments) === null || _a === void 0 ? void 0 : _a.length, numLikes: (_b = post.likes) === null || _b === void 0 ? void 0 : _b.length }));
     });
     res.status(200).json(new ApiResponse_1.ApiResponse(200, formattedPosts, "Posts fetched successfully"));
+}));
+exports.getPostComments = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const postId = req.params.id;
+    // Find the post by ID and populate the comments
+    const post = yield post_model_1.Post.findById(postId).populate({
+        path: "comments",
+        options: { sort: { createdAt: -1 } }, // Sorting by creation date in descending order (most recent first)
+        populate: { path: "user", select: "name image bio _id role userName" },
+    });
+    if (!post)
+        throw new ApiError_1.ApiError(404, "Post not found");
+    return res.status(200).json(new ApiResponse_1.ApiResponse(200, post.comments, "Comments fetched successfully"));
 }));
 exports.createPost = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.user._id;
@@ -167,7 +179,7 @@ exports.togglePostLike = (0, asyncHandler_1.asyncHandler)((req, res) => __awaite
     if (!user)
         throw new ApiError_1.ApiError(404, "User not found");
     if (post.likes.includes(userId)) {
-        post.likes = post.likes.filter((like) => like != userId);
+        post.likes = post.likes.filter((like) => like.toString() != userId.toString());
         message = "Post unliked";
     }
     else {
@@ -175,11 +187,11 @@ exports.togglePostLike = (0, asyncHandler_1.asyncHandler)((req, res) => __awaite
         message = "Post liked";
     }
     yield post.save();
-    return res.status(200).json(new ApiResponse_1.ApiResponse(200, message));
+    return res.status(200).json(new ApiResponse_1.ApiResponse(200, { updatedLikes: post.likes }, message));
 }));
 exports.addComment = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.user._id;
-    const { postId, parentCommentId, commentText } = req.body;
+    const { postId, commentText } = req.body;
     const user = yield user_model_1.User.findById(userId);
     if (!user) {
         throw new ApiError_1.ApiError(404, "User not found");
@@ -188,27 +200,22 @@ exports.addComment = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(vo
     if (!post) {
         throw new ApiError_1.ApiError(404, "Post not found");
     }
-    const parentComment = parentCommentId
-        ? yield post_model_1.Comment.findById(parentCommentId)
-        : null;
-    if (parentComment && parentComment.parentComment) {
-        throw new ApiError_1.ApiError(400, "Nesting beyond one level is not allowed");
-    }
-    // create a new comment
-    const newComment = new post_model_1.Comment({
+    // Create a new comment
+    let newComment = new post_model_1.Comment({
         user: userId,
         post: postId,
-        parentComment: parentCommentId || null,
-        commentText
+        text: commentText,
+    });
+    // Save the new comment
+    yield newComment.save();
+    // Populate the user fields in the new comment
+    newComment = yield newComment.populate({
+        path: "user",
+        select: "name image role _id bio",
     });
     // Add the new comment to the post's comments array
     post.comments.push(newComment._id);
     yield post.save();
-    // If the new comment is a reply, add it to the parent comment's replies array
-    if (parentComment) {
-        parentComment.replies.push(newComment._id);
-        yield parentComment.save();
-    }
     return res.status(201).json(new ApiResponse_1.ApiResponse(201, newComment, "Comment added successfully"));
 }));
 exports.deletePost = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {

@@ -5,6 +5,7 @@ import {
   deletePost,
   getAllPosts,
   getPostById,
+  getPostComments,
   getPostsByUser,
   getPostsOfAuthenticatedUser,
   getRecommendedPosts,
@@ -34,6 +35,9 @@ router.route("/getPosts/authenticated").get(verifyJWT, getPostsOfAuthenticatedUs
 
 // get user recommended posts
 router.route("/user/recommendedPosts").get(verifyJWT, getRecommendedPosts);
+
+// get post comments
+router.route("/:id/getComments").get(verifyJWT, getPostComments);
 
 // toggle post like
 router.route("/togglePostLike").post(verifyJWT, togglePostLike);
