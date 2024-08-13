@@ -10,6 +10,7 @@ const router = express_1.default.Router();
 router.route("/signup").post(auth_controllers_1.signUp);
 // login route, using the JWT tokens
 router.route("/login").post(auth_controllers_1.login);
+router.get("/google", auth_controllers_1.googleOauthHandler);
 /* --- SECURED ROUTES --- */
 //  update password
 router.route("/updatePassowrd").post(auth_controllers_1.updatePassword);

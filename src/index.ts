@@ -12,7 +12,6 @@ import userRoutes from "./routes/user.routes";
 import venueRoutes from "./routes/venue.routes";
 import cookieParser = require("cookie-parser");
 
-import { googleOauthHandler } from "./controllers/auth.controllers";
 import { checkNameAvailability, connectDB } from "./utils/utils";
 
 const app = express();
@@ -40,9 +39,6 @@ app.use("/venue", venueRoutes);
 app.use("/conversation", conversationRoutes);
 app.use("/product", productRoutes);
 app.use("/images", imageRoutes);
-
-app.get("/auth/google", googleOauthHandler);
-
 
 app.get("/checkUserName", async (req, res) => {
   const { userName } = req.query;

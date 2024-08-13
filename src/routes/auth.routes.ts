@@ -1,6 +1,7 @@
 import express from "express";
 import {
     checkAccessToken,
+    googleOauthHandler,
     login,
     logoutUser,
     refreshAccessToken,
@@ -15,6 +16,8 @@ router.route("/signup").post(signUp)
 
 // login route, using the JWT tokens
 router.route("/login").post(login)
+
+router.get("/google", googleOauthHandler);
 
 /* --- SECURED ROUTES --- */
 
