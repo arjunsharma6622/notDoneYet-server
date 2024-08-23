@@ -9,9 +9,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteVenue = exports.addRatingToVenue = exports.updateVenue = exports.createVenue = exports.getUserVenuesByUserId = exports.getVenueByUniqueName = exports.getVenueById = exports.getAllVenues = void 0;
+exports.deleteVenue = exports.addRatingToVenue = exports.toggleProfileLike = exports.updateVenue = exports.createVenue = exports.getUserVenuesByUserId = exports.getVenueByUniqueName = exports.getVenueById = exports.getAllVenues = void 0;
 const user_model_1 = require("../models/user.model");
 const venue_model_1 = require("../models/venue.model");
+const ApiError_1 = require("../utils/ApiError");
+const asyncHandler_1 = require("../utils/asyncHandler");
+const ApiResponse_1 = require("../utils/ApiResponse");
 const getAllVenues = (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const venues = yield venue_model_1.Venue.find();
@@ -108,6 +111,38 @@ const updateVenue = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     }
 });
 exports.updateVenue = updateVenue;
+exports.toggleProfileLike = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { profileId } = req.body;
+    const userId = req.user._id;
+    // Fetch the profile and user from the database
+    const profile = yield venue_model_1.Venue.findById(profileId);
+    if (!profile)
+        throw new ApiError_1.ApiError(404, "Profile not found");
+    const user = yield user_model_1.User.findById(userId);
+    if (!user)
+        throw new ApiError_1.ApiError(404, "User not found");
+    let messageToSend = "";
+    // Check if the profile is already liked by the user
+    const isLiked = user.likedProfiles.includes(profileId);
+    if (isLiked) {
+        // If already liked, then unlike
+        user.likedProfiles = user.likedProfiles.filter((id) => id.toString() !== profileId.toString());
+        profile.profileLikes = profile.profileLikes.filter((id) => id.toString() !== userId.toString());
+        messageToSend = "Profile unliked";
+    }
+    else {
+        // If not liked, then like
+        user.likedProfiles.push(profileId);
+        profile.profileLikes.push(userId);
+        messageToSend = "Profile liked";
+    }
+    // Save the changes to the user and profile
+    yield user.save();
+    yield profile.save();
+    const val = messageToSend === "Profile liked" ? 1 : -1;
+    // Return a success response
+    return res.status(200).json(new ApiResponse_1.ApiResponse(200, { liked: val }, messageToSend));
+}));
 const addRatingToVenue = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { user, venue, rating, review } = req.body;

@@ -182,6 +182,7 @@ export const toggleFollowUser = asyncHandler(async (req: any, res: Response) => 
 export const toggleProfileLike = asyncHandler(async (req: any, res: Response) => {
     const { profileId } = req.body;
     const userId = req.user._id;
+
     // Fetch the profile and user from the database
     const profile: any = await User.findById(profileId);
     if (!profile) throw new ApiError(404, "Profile not found");
@@ -196,8 +197,8 @@ export const toggleProfileLike = asyncHandler(async (req: any, res: Response) =>
 
     if (isLiked) {
         // If already liked, then unlike
-        user.likedProfiles = user.likedProfiles.filter((id: string) => id !== profileId);
-        profile.profileLikes = profile.profileLikes.filter((id: string) => id !== userId);
+        user.likedProfiles = user.likedProfiles.filter((id: string) => id.toString() !== profileId.toString());
+        profile.profileLikes = profile.profileLikes.filter((id: string) => id.toString() !== userId.toString());
 
         messageToSend = "Profile unliked";
     } else {
@@ -212,8 +213,10 @@ export const toggleProfileLike = asyncHandler(async (req: any, res: Response) =>
     await user.save();
     await profile.save();
 
+    const val = messageToSend === "Profile liked" ? 1 : -1;
+
     // Return a success response
-    return res.status(200).json(new ApiResponse(200, {}, messageToSend));
+    return res.status(200).json(new ApiResponse(200, { liked : val } , messageToSend));
 });
 
 export const getRecommendedUsers = asyncHandler(async (req: any, res: Response) => {

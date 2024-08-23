@@ -174,8 +174,8 @@ exports.toggleProfileLike = (0, asyncHandler_1.asyncHandler)((req, res) => __awa
     const isLiked = user.likedProfiles.includes(profileId);
     if (isLiked) {
         // If already liked, then unlike
-        user.likedProfiles = user.likedProfiles.filter((id) => id !== profileId);
-        profile.profileLikes = profile.profileLikes.filter((id) => id !== userId);
+        user.likedProfiles = user.likedProfiles.filter((id) => id.toString() !== profileId.toString());
+        profile.profileLikes = profile.profileLikes.filter((id) => id.toString() !== userId.toString());
         messageToSend = "Profile unliked";
     }
     else {
@@ -187,8 +187,9 @@ exports.toggleProfileLike = (0, asyncHandler_1.asyncHandler)((req, res) => __awa
     // Save the changes to the user and profile
     yield user.save();
     yield profile.save();
+    const val = messageToSend === "Profile liked" ? 1 : -1;
     // Return a success response
-    return res.status(200).json(new ApiResponse_1.ApiResponse(200, {}, messageToSend));
+    return res.status(200).json(new ApiResponse_1.ApiResponse(200, { liked: val }, messageToSend));
 }));
 exports.getRecommendedUsers = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.user._id;

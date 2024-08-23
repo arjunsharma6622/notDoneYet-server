@@ -28,32 +28,32 @@ export const getPostById = asyncHandler(async (req: Request, res: Response) => {
     res.status(200).json(new ApiResponse(200, post, "Post fetched successfully"));
 })
 
-export const getPostsByUser = asyncHandler( async (req: Request, res: Response) => {
-        const { userId, userName } = req.query;
+export const getPostsByUser = asyncHandler(async (req: Request, res: Response) => {
+    const { userId, userName } = req.query;
 
-        if (!userId && !userName)  throw new ApiError(400, "User ID or User Name not provided");
+    if (!userId && !userName) throw new ApiError(400, "User ID or User Name not provided");
 
-        let user;
-        if (userId) {
-            user = await User.findById(userId);
-        } else if (userName) {
-            user = await User.findOne({ userName: userName });
-        }
+    let user;
+    if (userId) {
+        user = await User.findById(userId);
+    } else if (userName) {
+        user = await User.findOne({ userName: userName });
+    }
 
-        if (!user) {
-            throw new ApiError(404, "User not found");
-        }
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
 
-        const posts = await Post.find({ user: user._id })
-            .populate({ path: "user", select: "name image bio role followers userName" })
-            .populate({
-                path: "comments",
-                populate: { path: "user", select: "name image userName" },
-            })
-            .populate({ path: "likes", select: "name image userName" })
-            .sort({ createdAt: -1 });
+    const posts = await Post.find({ user: user._id })
+        .populate({ path: "user", select: "name image bio role followers userName" })
+        .populate({
+            path: "comments",
+            populate: { path: "user", select: "name image userName" },
+        })
+        .populate({ path: "likes", select: "name image userName" })
+        .sort({ createdAt: -1 });
 
-        return res.status(200).json(new ApiResponse(200, posts, "Posts fetched successfully"));
+    return res.status(200).json(new ApiResponse(200, posts, "Posts fetched successfully"));
 })
 
 /* --- SECURE CONTROLLERS --- */
@@ -101,11 +101,12 @@ export const getRecommendedPosts = asyncHandler(async (req: any, res: Response) 
     }
 
     // Get the posts from the users that the current user is following
-    const followingUserPosts = user?.following?.flatMap((f: any) => f.posts) || [];
+    const followingUsersPosts = user?.following?.flatMap((f: any) => f.posts) || [];
+
 
     // Find the recommended posts from the users that the current user is following
     const recommendedPosts = await Post.find({
-        _id: { $in: followingUserPosts },
+        _id: { $in: followingUsersPosts },
     })
         .populate({
             path: "user",
@@ -124,7 +125,7 @@ export const getRecommendedPosts = asyncHandler(async (req: any, res: Response) 
 
     // Find the remaining posts not in followingUserPosts
     const remainingPosts = await Post.find({
-        _id: { $nin: [...followingUserPosts] },
+        _id: { $nin: [...followingUsersPosts] },
         user: { $ne: userId }
     })
         .populate({
@@ -144,9 +145,7 @@ export const getRecommendedPosts = asyncHandler(async (req: any, res: Response) 
 
 
     // Combine recommendedPosts and remainingPosts
-    const allPosts = [...recommendedPosts, ...remainingPosts];
-
-
+    const allPosts = [...recommendedPosts, ...remainingPosts].sort((a : any, b : any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     // Paginate the combined results
     const paginatedPosts = allPosts.slice((page - 1) * limit, page * limit);
@@ -165,7 +164,7 @@ export const getRecommendedPosts = asyncHandler(async (req: any, res: Response) 
 
 export const getPostComments = asyncHandler(async (req: any, res: Response) => {
     const postId = req.params.id;
-    
+
     // Find the post by ID and populate the comments
     const post = await Post.findById(postId).populate({
         path: "comments",
@@ -188,6 +187,10 @@ export const createPost = asyncHandler(async (req: any, res: Response) => {
         images
     })
     await newPost.save();
+    const user = await User.findById(userId);
+    if (!user) throw new ApiError(404, "User not found");
+    user?.posts?.push(newPost._id);
+    await user.save();
     return res.status(201).json(new ApiResponse(201, newPost, "Post created successfully"))
 })
 
@@ -214,7 +217,7 @@ export const togglePostLike = asyncHandler(async (req: any, res: Response) => {
 
     await post.save();
 
-    return res.status(200).json(new ApiResponse(200, {updatedLikes : post.likes} , message))
+    return res.status(200).json(new ApiResponse(200, { updatedLikes: post.likes }, message))
 })
 
 export const addComment = asyncHandler(async (req: any, res: Response) => {
@@ -226,7 +229,7 @@ export const addComment = asyncHandler(async (req: any, res: Response) => {
         throw new ApiError(404, "User not found");
     }
 
-    const post : any = await Post.findById(postId);
+    const post: any = await Post.findById(postId);
     if (!post) {
         throw new ApiError(404, "Post not found");
     }

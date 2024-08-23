@@ -1,6 +1,9 @@
 import { Request, Response } from "express";
 import { User } from "../models/user.model";
 import { Venue } from "../models/venue.model";
+import { ApiError } from "../utils/ApiError";
+import { asyncHandler } from "../utils/asyncHandler";
+import { ApiResponse } from "../utils/ApiResponse";
 
 export const getAllVenues = async (_req: Request, res: Response) => {
     try {
@@ -93,6 +96,46 @@ export const updateVenue = async (req: Request, res: Response) => {
         res.status(500).json({ error: "Internal Server Error" });
     }
 }
+
+export const toggleProfileLike = asyncHandler(async (req: any, res: Response) => {
+    const { profileId } = req.body;
+    const userId = req.user._id;
+
+    // Fetch the profile and user from the database
+    const profile: any = await Venue.findById(profileId);
+    if (!profile) throw new ApiError(404, "Profile not found");
+
+    const user: any = await User.findById(userId);
+    if (!user) throw new ApiError(404, "User not found");
+
+    let messageToSend = "";
+
+    // Check if the profile is already liked by the user
+    const isLiked = user.likedProfiles.includes(profileId);
+
+    if (isLiked) {
+        // If already liked, then unlike
+        user.likedProfiles = user.likedProfiles.filter((id: string) => id.toString() !== profileId.toString());
+        profile.profileLikes = profile.profileLikes.filter((id: string) => id.toString() !== userId.toString());
+
+        messageToSend = "Profile unliked";
+    } else {
+        // If not liked, then like
+        user.likedProfiles.push(profileId);
+        profile.profileLikes.push(userId);
+
+        messageToSend = "Profile liked";
+    }
+
+    // Save the changes to the user and profile
+    await user.save();
+    await profile.save();
+
+    const val = messageToSend === "Profile liked" ? 1 : -1;
+
+    // Return a success response
+    return res.status(200).json(new ApiResponse(200, { liked : val } , messageToSend));
+});
 
 export const addRatingToVenue = async (req: Request, res: Response) => {
     try {

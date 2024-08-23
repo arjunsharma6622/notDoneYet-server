@@ -96,10 +96,10 @@ exports.getRecommendedPosts = (0, asyncHandler_1.asyncHandler)((req, res) => __a
         return res.status(404).json({ error: "User not found" });
     }
     // Get the posts from the users that the current user is following
-    const followingUserPosts = ((_b = user === null || user === void 0 ? void 0 : user.following) === null || _b === void 0 ? void 0 : _b.flatMap((f) => f.posts)) || [];
+    const followingUsersPosts = ((_b = user === null || user === void 0 ? void 0 : user.following) === null || _b === void 0 ? void 0 : _b.flatMap((f) => f.posts)) || [];
     // Find the recommended posts from the users that the current user is following
     const recommendedPosts = yield post_model_1.Post.find({
-        _id: { $in: followingUserPosts },
+        _id: { $in: followingUsersPosts },
     })
         .populate({
         path: "user",
@@ -117,7 +117,7 @@ exports.getRecommendedPosts = (0, asyncHandler_1.asyncHandler)((req, res) => __a
         .lean();
     // Find the remaining posts not in followingUserPosts
     const remainingPosts = yield post_model_1.Post.find({
-        _id: { $nin: [...followingUserPosts] },
+        _id: { $nin: [...followingUsersPosts] },
         user: { $ne: userId }
     })
         .populate({
@@ -135,7 +135,7 @@ exports.getRecommendedPosts = (0, asyncHandler_1.asyncHandler)((req, res) => __a
         .sort({ createdAt: -1 })
         .lean();
     // Combine recommendedPosts and remainingPosts
-    const allPosts = [...recommendedPosts, ...remainingPosts];
+    const allPosts = [...recommendedPosts, ...remainingPosts].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     // Paginate the combined results
     const paginatedPosts = allPosts.slice((page - 1) * limit, page * limit);
     // Format the posts to include the number of comments and likes
@@ -158,6 +158,7 @@ exports.getPostComments = (0, asyncHandler_1.asyncHandler)((req, res) => __await
     return res.status(200).json(new ApiResponse_1.ApiResponse(200, post.comments, "Comments fetched successfully"));
 }));
 exports.createPost = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _c;
     const userId = req.user._id;
     const { description, images } = req.body;
     const newPost = new post_model_1.Post({
@@ -166,6 +167,11 @@ exports.createPost = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(vo
         images
     });
     yield newPost.save();
+    const user = yield user_model_1.User.findById(userId);
+    if (!user)
+        throw new ApiError_1.ApiError(404, "User not found");
+    (_c = user === null || user === void 0 ? void 0 : user.posts) === null || _c === void 0 ? void 0 : _c.push(newPost._id);
+    yield user.save();
     return res.status(201).json(new ApiResponse_1.ApiResponse(201, newPost, "Post created successfully"));
 }));
 exports.togglePostLike = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {

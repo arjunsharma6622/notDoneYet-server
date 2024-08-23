@@ -7,8 +7,10 @@ import {
   getUserVenuesByUserId,
   getVenueById,
   getVenueByUniqueName,
+  toggleProfileLike,
   updateVenue,
 } from "../controllers/venue.controllers";
+import { verifyJWT } from "../middleware/auth.middleware";
 
 const router = express.Router();
 
@@ -24,6 +26,8 @@ router.route("/:id").get(getVenueById).patch(updateVenue).delete(deleteVenue);
 router.route("/:id").patch(updateVenue).delete(deleteVenue);
 // delete venue by venueId
 router.route("/:id").delete(deleteVenue);
+
+router.route("/toggleProfileLike").post(verifyJWT, toggleProfileLike)
 
 // get venue by unique name
 router.route("/uniqueName/:uniqueName").get(getVenueByUniqueName);
