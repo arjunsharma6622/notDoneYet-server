@@ -15,19 +15,19 @@ export const getAllVenues = async (_req: Request, res: Response) => {
     }
 }
 
-export const getVenueById = async (req: Request, res: Response) => {
+export const getVenueById = asyncHandler(async (req: Request, res: Response) => {
     try {
         const venueId = req.params.id;
         const venue = await Venue.findById(venueId);
         if (!venue) {
-            return res.status(404).json({ error: "Venue not found" });
+            throw new ApiError(404, "Venue not found");
         }
-        res.status(200).json(venue);
+        res.status(200).json(new ApiResponse(200, venue, "Venue fetched successfully"));
     } catch (err) {
         console.error(`Error fetching venues: ${err}`);
         res.status(500).json({ error: "Internal Server Error" });
     }
-}
+})
 
 export const getVenueByUniqueName = async (req: Request, res: Response) => {
     try {

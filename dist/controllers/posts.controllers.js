@@ -15,6 +15,7 @@ const user_model_1 = require("../models/user.model");
 const ApiError_1 = require("../utils/ApiError");
 const ApiResponse_1 = require("../utils/ApiResponse");
 const asyncHandler_1 = require("../utils/asyncHandler");
+const venue_model_1 = require("../models/venue.model");
 exports.getAllPosts = (0, asyncHandler_1.asyncHandler)((_req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const posts = yield post_model_1.Post.find();
     res.status(200).json(new ApiResponse_1.ApiResponse(200, posts, "Posts fetched successfully"));
@@ -43,6 +44,9 @@ exports.getPostsByUser = (0, asyncHandler_1.asyncHandler)((req, res) => __awaite
     let user;
     if (userId) {
         user = yield user_model_1.User.findById(userId);
+        if (!user) {
+            user = yield venue_model_1.Venue.findById(userId);
+        }
     }
     else if (userName) {
         user = yield user_model_1.User.findOne({ userName: userName });

@@ -12,9 +12,9 @@ router.route("/").get(venue_controllers_1.getAllVenues).post(venue_controllers_1
 // create a new venue
 router.route("/").post(venue_controllers_1.createVenue);
 // get venue by venueId
-router.route("/:id").get(venue_controllers_1.getVenueById).patch(venue_controllers_1.updateVenue).delete(venue_controllers_1.deleteVenue);
+router.route("/:id").get(venue_controllers_1.getVenueById);
 // update venue by venueId
-router.route("/:id").patch(venue_controllers_1.updateVenue).delete(venue_controllers_1.deleteVenue);
+router.route("/:id").patch(venue_controllers_1.updateVenue);
 // delete venue by venueId
 router.route("/:id").delete(venue_controllers_1.deleteVenue);
 router.route("/toggleProfileLike").post(auth_middleware_1.verifyJWT, venue_controllers_1.toggleProfileLike);

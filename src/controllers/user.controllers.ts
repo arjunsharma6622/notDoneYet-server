@@ -135,6 +135,7 @@ export const getUserFollowing = asyncHandler(async (req: any, res: Response) => 
 
 export const toggleFollowUser = asyncHandler(async (req: any, res: Response) => {
     const { selectedUserId } = req.body;
+    let messageToSend = "";
     const currentUserId = req.user._id;
     const currentUser: any = await User.findById(currentUserId);
     const selectedUser: any = await User.findById(selectedUserId);
@@ -143,10 +144,12 @@ export const toggleFollowUser = asyncHandler(async (req: any, res: Response) => 
     // check if current user is following the selected user
     if (currentUser.following.includes(selectedUserId)) {
         // unfollow
+        messageToSend = "User unfollowed";
         currentUser.following.pull(selectedUserId);
         selectedUser.followers.pull(currentUserId);
     } else {
         // follow
+        messageToSend = "User followed";
         currentUser.following.push(selectedUserId);
         selectedUser.followers.push(currentUserId);
     }
@@ -168,13 +171,14 @@ export const toggleFollowUser = asyncHandler(async (req: any, res: Response) => 
     await currentUser.save();
     await selectedUser.save();
 
+
     return res
         .status(200)
         .json(
             new ApiResponse(
                 200,
                 { conversationId: convoId },
-                "User follow status toggled successfully"
+                messageToSend
             )
         )
 })

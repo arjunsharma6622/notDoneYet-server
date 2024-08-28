@@ -21,9 +21,9 @@ router.route("/").get(getAllVenues).post(createVenue);
 router.route("/").post(createVenue);
 
 // get venue by venueId
-router.route("/:id").get(getVenueById).patch(updateVenue).delete(deleteVenue);
+router.route("/:id").get(getVenueById)
 // update venue by venueId
-router.route("/:id").patch(updateVenue).delete(deleteVenue);
+router.route("/:id").patch(updateVenue)
 // delete venue by venueId
 router.route("/:id").delete(deleteVenue);
 

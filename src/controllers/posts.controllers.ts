@@ -4,6 +4,7 @@ import { User } from "../models/user.model";
 import { ApiError } from "../utils/ApiError";
 import { ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
+import { Venue } from "../models/venue.model";
 
 export const getAllPosts = asyncHandler(async (_req: Request, res: Response) => {
     const posts = await Post.find();
@@ -36,6 +37,9 @@ export const getPostsByUser = asyncHandler(async (req: Request, res: Response) =
     let user;
     if (userId) {
         user = await User.findById(userId);
+        if (!user) {
+            user = await Venue.findById(userId);
+        }
     } else if (userName) {
         user = await User.findOne({ userName: userName });
     }
@@ -145,7 +149,7 @@ export const getRecommendedPosts = asyncHandler(async (req: any, res: Response) 
 
 
     // Combine recommendedPosts and remainingPosts
-    const allPosts = [...recommendedPosts, ...remainingPosts].sort((a : any, b : any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    const allPosts = [...recommendedPosts, ...remainingPosts].sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     // Paginate the combined results
     const paginatedPosts = allPosts.slice((page - 1) * limit, page * limit);

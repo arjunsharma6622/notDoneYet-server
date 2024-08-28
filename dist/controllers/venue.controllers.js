@@ -26,21 +26,20 @@ const getAllVenues = (_req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.getAllVenues = getAllVenues;
-const getVenueById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.getVenueById = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const venueId = req.params.id;
         const venue = yield venue_model_1.Venue.findById(venueId);
         if (!venue) {
-            return res.status(404).json({ error: "Venue not found" });
+            throw new ApiError_1.ApiError(404, "Venue not found");
         }
-        res.status(200).json(venue);
+        res.status(200).json(new ApiResponse_1.ApiResponse(200, venue, "Venue fetched successfully"));
     }
     catch (err) {
         console.error(`Error fetching venues: ${err}`);
         res.status(500).json({ error: "Internal Server Error" });
     }
-});
-exports.getVenueById = getVenueById;
+}));
 const getVenueByUniqueName = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const uniqueName = req.params.uniqueName;

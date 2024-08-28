@@ -126,6 +126,7 @@ exports.getUserFollowing = (0, asyncHandler_1.asyncHandler)((req, res) => __awai
 }));
 exports.toggleFollowUser = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { selectedUserId } = req.body;
+    let messageToSend = "";
     const currentUserId = req.user._id;
     const currentUser = yield user_model_1.User.findById(currentUserId);
     const selectedUser = yield user_model_1.User.findById(selectedUserId);
@@ -134,11 +135,13 @@ exports.toggleFollowUser = (0, asyncHandler_1.asyncHandler)((req, res) => __awai
     // check if current user is following the selected user
     if (currentUser.following.includes(selectedUserId)) {
         // unfollow
+        messageToSend = "User unfollowed";
         currentUser.following.pull(selectedUserId);
         selectedUser.followers.pull(currentUserId);
     }
     else {
         // follow
+        messageToSend = "User followed";
         currentUser.following.push(selectedUserId);
         selectedUser.followers.push(currentUserId);
     }
@@ -157,7 +160,7 @@ exports.toggleFollowUser = (0, asyncHandler_1.asyncHandler)((req, res) => __awai
     yield selectedUser.save();
     return res
         .status(200)
-        .json(new ApiResponse_1.ApiResponse(200, { conversationId: convoId }, "User follow status toggled successfully"));
+        .json(new ApiResponse_1.ApiResponse(200, { conversationId: convoId }, messageToSend));
 }));
 exports.toggleProfileLike = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { profileId } = req.body;
