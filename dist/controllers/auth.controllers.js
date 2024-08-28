@@ -155,6 +155,9 @@ exports.login = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0,
     }
     const user = yield user_model_1.User.findOne({ email }).select("+password");
     // include password here as in the default main user schema, the password select is set to false, so for the isPasswordCorrect method we need to include it here
+    if (!(user === null || user === void 0 ? void 0 : user.password)) {
+        throw new ApiError_1.ApiError(400, "Looks like you have signed up with Google");
+    }
     if (!user) {
         throw new ApiError_1.ApiError(404, "User not found");
     }

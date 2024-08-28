@@ -181,6 +181,10 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
     const user = await User.findOne({ email }).select("+password")
     // include password here as in the default main user schema, the password select is set to false, so for the isPasswordCorrect method we need to include it here
 
+    if(!user?.password){
+        throw new ApiError(400, "Looks like you have signed up with Google")
+    }
+
     if (!user) {
         throw new ApiError(404, "User not found")
     }
@@ -193,7 +197,6 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 
     // generate access token and refresh token, and send the cookie
     const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id.toString())
-
 
     const userToSend = {
         _id: user?._id.toString(),
