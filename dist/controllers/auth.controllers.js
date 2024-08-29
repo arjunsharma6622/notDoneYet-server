@@ -12,16 +12,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.refreshAccessToken = exports.updatePassword = exports.logoutUser = exports.login = exports.signUp = exports.checkAccessToken = exports.googleOauthHandler = void 0;
+exports.refreshAccessToken = exports.updatePassword = exports.logoutUser = exports.login = exports.signUp = exports.checkAccessToken = exports.googleOauthHandler = exports.mobileGoogleOauthHandler = void 0;
+const axios_1 = __importDefault(require("axios"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const querystring_1 = __importDefault(require("querystring"));
 const user_model_1 = require("../models/user.model");
 const ApiError_1 = require("../utils/ApiError");
 const ApiResponse_1 = require("../utils/ApiResponse");
 const asyncHandler_1 = require("../utils/asyncHandler");
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const utils_1 = require("../utils/utils");
-const axios_1 = __importDefault(require("axios"));
-const querystring_1 = __importDefault(require("querystring"));
 const generateAccessAndRefreshTokens = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const user = yield user_model_1.User.findById(userId);
@@ -74,6 +74,50 @@ const getGoogleOauthTokens = (code) => __awaiter(void 0, void 0, void 0, functio
         throw new ApiError_1.ApiError(500, "Failed to fetch Google Oauth Tokens");
     }
 });
+// google login for mobile
+exports.mobileGoogleOauthHandler = ((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    try {
+        const id_token = req.body.id_token;
+        const googleUserData = yield axios_1.default.get(`https://oauth2.googleapis.com/tokeninfo?id_token=${id_token}`);
+        // 4. add the user
+        const { name, email, picture, email_verified } = googleUserData.data;
+        const userName = email.split("@")[0];
+        if (!email_verified)
+            throw new ApiError_1.ApiError(400, "Google Email is not verified");
+        let user = yield user_model_1.User.findOne({ email });
+        // check if there is a user, if there is no user with same email then create a new user
+        if (!user && email) {
+            const newUser = new user_model_1.User({
+                name,
+                userName,
+                email,
+                image: picture,
+            });
+            yield newUser.save();
+            user = newUser;
+        }
+        // 5. create access and refresh tokens
+        const { accessToken, refreshToken } = yield generateAccessAndRefreshTokens(user === null || user === void 0 ? void 0 : user._id.toString());
+        const userToSend = {
+            _id: user === null || user === void 0 ? void 0 : user._id.toString(),
+            name: user === null || user === void 0 ? void 0 : user.name,
+            userName: user === null || user === void 0 ? void 0 : user.userName,
+            email: user === null || user === void 0 ? void 0 : user.email,
+            role: user === null || user === void 0 ? void 0 : user.role,
+            image: user === null || user === void 0 ? void 0 : user.image,
+            bio: user === null || user === void 0 ? void 0 : user.bio,
+            backgroundImg: user === null || user === void 0 ? void 0 : user.backgroundImg,
+            followers: (_a = user === null || user === void 0 ? void 0 : user.followers) === null || _a === void 0 ? void 0 : _a.length,
+            following: (_b = user === null || user === void 0 ? void 0 : user.following) === null || _b === void 0 ? void 0 : _b.length,
+        };
+        res.status(200).json(new ApiResponse_1.ApiResponse(200, { user: userToSend, accessToken, refreshToken }, "User logged In Successfully"));
+    }
+    catch (err) {
+        console.log(err);
+        res.redirect(`${process.env.CLIENT_HEAD}/login`);
+    }
+}));
 exports.googleOauthHandler = ((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // 1. get the code from the query string
@@ -119,10 +163,10 @@ exports.googleOauthHandler = ((req, res) => __awaiter(void 0, void 0, void 0, fu
     }
 }));
 exports.checkAccessToken = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _c;
     return res
         .status(200)
-        .json(new ApiResponse_1.ApiResponse(200, { accessToken: (_a = req === null || req === void 0 ? void 0 : req.user) === null || _a === void 0 ? void 0 : _a.accessToken }, "Access token is valid"));
+        .json(new ApiResponse_1.ApiResponse(200, { accessToken: (_c = req === null || req === void 0 ? void 0 : req.user) === null || _c === void 0 ? void 0 : _c.accessToken }, "Access token is valid"));
 }));
 exports.signUp = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { name, userName, email, password } = req.body;
@@ -148,7 +192,7 @@ exports.signUp = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0
         .json(new ApiResponse_1.ApiResponse(201, { user: newUser }, "User created successfully"));
 }));
 exports.login = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _b, _c;
+    var _d, _e;
     const { email, password } = req.body;
     if (!email || !password) {
         throw new ApiError_1.ApiError(400, "Missing required fields");
@@ -176,8 +220,8 @@ exports.login = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0,
         image: user === null || user === void 0 ? void 0 : user.image,
         bio: user === null || user === void 0 ? void 0 : user.bio,
         backgroundImg: user === null || user === void 0 ? void 0 : user.backgroundImg,
-        followers: (_b = user === null || user === void 0 ? void 0 : user.followers) === null || _b === void 0 ? void 0 : _b.length,
-        following: (_c = user === null || user === void 0 ? void 0 : user.following) === null || _c === void 0 ? void 0 : _c.length,
+        followers: (_d = user === null || user === void 0 ? void 0 : user.followers) === null || _d === void 0 ? void 0 : _d.length,
+        following: (_e = user === null || user === void 0 ? void 0 : user.following) === null || _e === void 0 ? void 0 : _e.length,
     };
     return res
         .status(200)
@@ -188,8 +232,8 @@ exports.login = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0,
 exports.logoutUser = (0, asyncHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     //clear the cookies and remove the refresh token, this is being used as a secured route, so after executin the verifyJWT middlware we can access user from req.user
     // const updatedUser = await User.findByIdAndUpdate(req.user?._id, { $set: { refreshToken: undefined } }, { new: true }).select("+refreshToken")
-    var _d;
-    yield user_model_1.User.findByIdAndUpdate((_d = req.user) === null || _d === void 0 ? void 0 : _d._id, { $set: { refreshToken: "" } }, { new: true }).select("+refreshToken");
+    var _f;
+    yield user_model_1.User.findByIdAndUpdate((_f = req.user) === null || _f === void 0 ? void 0 : _f._id, { $set: { refreshToken: "" } }, { new: true }).select("+refreshToken");
     return res
         .status(200)
         .clearCookie("accessToken", utils_1.cookieOptions)

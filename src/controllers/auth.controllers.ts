@@ -1,15 +1,14 @@
+import axios from 'axios';
 import bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
+import jwt from "jsonwebtoken";
+import qs from "querystring";
 import { User } from '../models/user.model';
+import { UserDocument } from '../types/user.types';
 import { ApiError } from '../utils/ApiError';
 import { ApiResponse } from '../utils/ApiResponse';
 import { asyncHandler } from '../utils/asyncHandler';
-import jwt from "jsonwebtoken"
 import { cookieOptions } from '../utils/utils';
-import axios from 'axios';
-import qs from "querystring"
-import { error } from 'console';
-import { UserDocument } from '../types/user.types';
 
 const generateAccessAndRefreshTokens = async (userId: string) => {
     try {
@@ -72,11 +71,63 @@ const getGoogleOauthTokens = async (code: string) => {
     }
 }
 
+// google login for mobile
+export const mobileGoogleOauthHandler = (async (req: any, res: Response) => {
+    try {
+        const id_token = req.body.id_token
+        const googleUserData : any = await axios.get(`https://oauth2.googleapis.com/tokeninfo?id_token=${id_token}`)
+
+        // 4. add the user
+        const { name, email, picture, email_verified } = googleUserData.data
+
+        const userName = email.split("@")[0]
+
+        if (!email_verified) throw new ApiError(400, "Google Email is not verified")
+
+        let user: UserDocument | null = await User.findOne({ email })
+
+        // check if there is a user, if there is no user with same email then create a new user
+        if (!user && email) {
+            const newUser = new User({
+                name,
+                userName,
+                email,
+                image: picture,
+            })
+
+            await newUser.save()
+
+            user = newUser
+        }
+
+        // 5. create access and refresh tokens
+        const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user?._id.toString())
+
+        const userToSend = {
+            _id: user?._id.toString(),
+            name: user?.name,
+            userName: user?.userName,
+            email: user?.email,
+            role: user?.role,
+            image: user?.image,
+            bio: user?.bio,
+            backgroundImg: user?.backgroundImg,
+            followers: user?.followers?.length,
+            following: user?.following?.length,
+        }
+    
+        res.status(200).json(new ApiResponse(200, { user: userToSend, accessToken, refreshToken }, "User logged In Successfully"))
+    } catch (err) {
+        console.log(err)
+        res.redirect(`${process.env.CLIENT_HEAD}/login`)
+    }
+})
 
 export const googleOauthHandler = (async (req: any, res: Response) => {
     try {
         // 1. get the code from the query string
         const code = req.query.code as string
+
 
         // 2. get the ID and access token with the code
         const { id_token, access_token } = await getGoogleOauthTokens(code)
@@ -93,7 +144,7 @@ export const googleOauthHandler = (async (req: any, res: Response) => {
 
         const userName = email.split("@")[0]
 
-        if(!verified_email) throw new ApiError(400, "Google Email is not verified")
+        if (!verified_email) throw new ApiError(400, "Google Email is not verified")
 
         let user: UserDocument | null = await User.findOne({ email })
 
@@ -104,7 +155,7 @@ export const googleOauthHandler = (async (req: any, res: Response) => {
                 userName,
                 email,
                 image: picture,
-                googleId 
+                googleId
             })
 
             await newUser.save()
@@ -127,7 +178,6 @@ export const googleOauthHandler = (async (req: any, res: Response) => {
         res.redirect(`${process.env.CLIENT_HEAD}/login`)
     }
 })
-
 
 export const checkAccessToken = asyncHandler(async (req: any, res: Response) => {
     return res
@@ -181,7 +231,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
     const user = await User.findOne({ email }).select("+password")
     // include password here as in the default main user schema, the password select is set to false, so for the isPasswordCorrect method we need to include it here
 
-    if(!user?.password){
+    if (!user?.password) {
         throw new ApiError(400, "Looks like you have signed up with Google")
     }
 

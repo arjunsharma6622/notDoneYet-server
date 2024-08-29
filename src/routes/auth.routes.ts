@@ -4,6 +4,7 @@ import {
     googleOauthHandler,
     login,
     logoutUser,
+    mobileGoogleOauthHandler,
     refreshAccessToken,
     signUp,
     updatePassword
@@ -18,6 +19,8 @@ router.route("/signup").post(signUp)
 router.route("/login").post(login)
 
 router.get("/google", googleOauthHandler);
+
+router.post("/mobileAppGoogle", mobileGoogleOauthHandler);
 
 /* --- SECURED ROUTES --- */
 
